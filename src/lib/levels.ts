@@ -126,12 +126,51 @@ console.log(sub);`,
     id: 5,
     title: "Fetch Block Data (RPC)",
     description: "Query chain state directly through the Tatum RPC client.",
-    codeSnippet: `import { getTatumClient } from "@/lib/tatum";
+    codeSnippet: `const response = await fetch("/api/levels/fetch-rpc-data", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ address: "YOUR_WALLET_ADDRESS" }),
+});
+const result = await response.json();
+console.log(result.rawBlockNumberJsonRpc);
+console.log(result.rpc.rawJsonRpc);`,
+    action: async ({ log, setResult, input }) => {
+      const address = input?.address?.trim();
+      if (!address) {
+        throw new Error("Wallet address is required.");
+      }
 
-const tatum = await getTatumClient();
-const blockNumber = await tatum.rpc.blockNumber();
-console.log(blockNumber);`,
-    action: notImplementedAction,
+      log(`Level 5 request: RPC blockNumber + getBalance for ${address}`);
+      const response = await fetch("/api/levels/fetch-rpc-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to fetch RPC data.");
+      }
+
+      const result = (await response.json()) as {
+        blockNumber: string;
+        rpc: { ethBalance: string; rawJsonRpc: unknown };
+        dataApi: { ethBalance: string };
+        rawBlockNumberJsonRpc: unknown;
+      };
+
+      setResult(result);
+      log(`Level 5 response: blockNumber=${result.blockNumber}`);
+      log(`Level 5 raw JSON-RPC blockNumber: ${JSON.stringify(result.rawBlockNumberJsonRpc)}`);
+      log(`Level 5 raw JSON-RPC getBalance: ${JSON.stringify(result.rpc.rawJsonRpc)}`);
+      log(
+        `Level 5 compare: Data API=${result.dataApi.ethBalance} ETH vs RPC=${result.rpc.ethBalance} ETH`
+      );
+
+      return result;
+    },
   },
 ];
 

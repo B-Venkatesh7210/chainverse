@@ -55,8 +55,33 @@ export async function generateWallet() {
 
 export async function getBalance(address: string) {
   const tatum = await getClient();
+  const { data } = await tatum.address.getBalance({
+    addresses: [address],
+  });
+  const firstEntry = Array.isArray(data) ? data[0] : data;
+  return firstEntry;
+}
+
+export async function getRpcBalance(address: string) {
+  const tatum = await getClient();
   const { result } = await tatum.rpc.getBalance(address);
   return result;
+}
+
+export async function getRpcBlockNumber() {
+  const tatum = await getClient();
+  const { result } = await tatum.rpc.blockNumber();
+  return result;
+}
+
+export async function getRpcBlockNumberRaw() {
+  const tatum = await getClient();
+  return tatum.rpc.blockNumber();
+}
+
+export async function getRpcBalanceRaw(address: string) {
+  const tatum = await getClient();
+  return tatum.rpc.getBalance(address);
 }
 
 export type SendTransactionPayload = {

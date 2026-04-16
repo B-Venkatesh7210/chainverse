@@ -31,6 +31,17 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           | { address: string; ethBalance: string; rawBalance: string }
           | undefined)
       : undefined;
+  const rpcResult =
+    level.id === 5
+      ? (levelResult as
+          | {
+              address: string;
+              blockNumber: string;
+              rpc: { ethBalance: string; rawBalance: string };
+              dataApi: { ethBalance: string; rawBalance: string };
+            }
+          | undefined)
+      : undefined;
 
   const handleTest = async () => {
     setIsRunning(true);
@@ -38,7 +49,10 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
       await level.action({
         log: addLog,
         setResult: (result) => setLevelResult(level.id, result),
-        input: level.id === 2 ? { address: addressInput } : undefined,
+        input:
+          level.id === 2 || level.id === 5
+            ? { address: addressInput }
+            : undefined,
       });
     } catch (error) {
       const message =
@@ -86,7 +100,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             <code>{level.codeSnippet}</code>
           </pre>
         </div>
-        {level.id === 2 && (
+        {(level.id === 2 || level.id === 5) && (
           <div className="mt-4">
             <label
               htmlFor={`wallet-address-${level.id}`}
@@ -151,6 +165,28 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             <p className="mt-1 text-zinc-100">
               <span className="text-zinc-500">ETH Balance:</span>{" "}
               {balanceResult.ethBalance} ETH
+            </p>
+          </div>
+        )}
+        {rpcResult && (
+          <div className="mt-4 rounded-lg border border-violet-700/50 bg-violet-900/10 p-3 text-xs">
+            <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-violet-400">
+              RPC vs Data API
+            </p>
+            <p className="break-all text-zinc-200">
+              <span className="text-zinc-500">Address:</span> {rpcResult.address}
+            </p>
+            <p className="mt-1 text-zinc-100">
+              <span className="text-zinc-500">Block Number (RPC):</span>{" "}
+              {rpcResult.blockNumber}
+            </p>
+            <p className="mt-1 text-zinc-100">
+              <span className="text-zinc-500">Data API Balance:</span>{" "}
+              {rpcResult.dataApi.ethBalance} ETH
+            </p>
+            <p className="mt-1 text-zinc-100">
+              <span className="text-zinc-500">RPC Balance:</span>{" "}
+              {rpcResult.rpc.ethBalance} ETH
             </p>
           </div>
         )}

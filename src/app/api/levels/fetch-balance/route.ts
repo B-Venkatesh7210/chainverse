@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBalance } from "@/lib/tatum";
+import { getRpcBalance } from "@/lib/tatum";
 
 function weiLikeToEthString(value: string): string {
   const normalized = value.startsWith("0x")
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       return new NextResponse("Wallet address is required.", { status: 400 });
     }
 
-    const rawBalance = await getBalance(address);
+    const rawBalance = await getRpcBalance(address);
     const ethBalance = weiLikeToEthString(String(rawBalance));
 
     return NextResponse.json({
