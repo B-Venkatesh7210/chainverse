@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Play } from "lucide-react";
+import { CheckCircle2, Play } from "lucide-react";
 import { Modal } from "./Modal";
 import type { Level } from "@/lib/levels";
 import { useGameStore, type WalletLevelResult } from "@/store/gameStore";
@@ -26,7 +26,13 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
   } | null>(null);
   const addLog = useGameStore((state) => state.addLog);
   const setLevelResult = useGameStore((state) => state.setLevelResult);
+  const markLevelCompleted = useGameStore((state) => state.markLevelCompleted);
+  const completedLevels = useGameStore((state) => state.completedLevels);
+  const setSuccessMessage = useGameStore((state) => state.setSuccessMessage);
+  const setGuideMessage = useGameStore((state) => state.setGuideMessage);
+  const soundEnabled = useGameStore((state) => state.soundEnabled);
   const levelResult = useGameStore((state) => state.levelResults[level.id]);
+  const isCompleted = completedLevels.includes(level.id);
 
   const walletResult =
     level.id === 1 ? (levelResult as WalletLevelResult | undefined) : undefined;
@@ -74,6 +80,33 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             ? { address: addressInput, webhookUrl: webhookInput }
             : undefined,
       });
+      markLevelCompleted(level.id);
+      setSuccessMessage(`Level ${level.id} complete: ${level.title}`);
+      setGuideMessage(
+        `Great run. ${
+          level.id < 5
+            ? `Proceed to Level ${level.id + 1} to continue repairing ChainVerse.`
+            : "All levels cleared. ChainVerse systems are stabilizing."
+        }`
+      );
+      if (soundEnabled && typeof window !== "undefined") {
+        const context = new window.AudioContext();
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+        oscillator.type = "triangle";
+        oscillator.frequency.setValueAtTime(660, context.currentTime);
+        oscillator.frequency.setValueAtTime(880, context.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.001, context.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.22);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.24);
+      }
+      window.setTimeout(() => {
+        setSuccessMessage(null);
+      }, 2500);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unknown execution error.";
@@ -88,7 +121,11 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="group flex flex-col justify-between rounded-xl border border-sky-900/60 bg-slate-950/80 px-4 py-3 text-left shadow transition hover:border-sky-400/70 hover:bg-slate-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        className={`group relative flex flex-col justify-between rounded-xl border px-4 py-3 text-left shadow transition hover:bg-slate-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
+          isCompleted
+            ? "border-emerald-500/50 bg-emerald-950/25 animate-fade-in"
+            : "border-sky-900/60 bg-slate-950/80 hover:border-sky-400/70"
+        }`}
       >
         <div className="flex items-center justify-between gap-2">
           <div>
@@ -98,12 +135,21 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             <p className="mt-1 text-sm text-zinc-200">{level.title}</p>
           </div>
           <div className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-500/60 bg-sky-500/20 text-sky-300 transition group-hover:shadow-neon-blue">
-            <Play className="h-4 w-4 fill-sky-400/40" />
+            {isCompleted ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+            ) : (
+              <Play className="h-4 w-4 fill-sky-400/40" />
+            )}
           </div>
         </div>
         <p className="mt-3 text-[11px] text-zinc-500">
           {level.description}
         </p>
+        {isCompleted && (
+          <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-emerald-300">
+            Cleared
+          </p>
+        )}
       </button>
 
       <Modal

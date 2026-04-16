@@ -4,12 +4,37 @@ import React from "react";
 import { LevelCard } from "./LevelCard";
 import { ConsolePanel } from "./ConsolePanel";
 import { levels } from "@/lib/levels";
+import { useGameStore } from "@/store/gameStore";
 
 export function GameEngine() {
+  const completedLevels = useGameStore((state) => state.completedLevels);
+  const successMessage = useGameStore((state) => state.successMessage);
+  const guideMessage = useGameStore((state) => state.guideMessage);
+  const soundEnabled = useGameStore((state) => state.soundEnabled);
+  const toggleSound = useGameStore((state) => state.toggleSound);
+
+  const progressPercent = Math.round(
+    (completedLevels.length / levels.length) * 100
+  );
+
   return (
     <div className="min-h-screen bg-game-bg text-zinc-100 flex flex-col">
       <header className="border-b border-zinc-800 bg-gradient-to-r from-sky-500/10 via-purple-500/10 to-fuchsia-500/10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-4">
+          <div className="w-full">
+            <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-zinc-400">
+              <span>Fixing ChainVerse...</span>
+              <span>{progressPercent}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+              <div
+                className="h-full animate-pulse rounded-full bg-gradient-to-r from-emerald-400 to-sky-400 transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-sky-500/20 border border-sky-400/40 shadow-neon-blue flex items-center justify-center text-sky-300 text-xl font-black">
               CV
@@ -26,6 +51,14 @@ export function GameEngine() {
           <div className="flex items-center gap-3 text-xs text-zinc-500">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.75)]" />
             <span>Network: Sandbox</span>
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="rounded-md border border-zinc-700 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-zinc-300 transition hover:border-sky-500 hover:text-sky-300"
+            >
+              Sound {soundEnabled ? "On" : "Off"}
+            </button>
+          </div>
           </div>
         </div>
       </header>
@@ -52,6 +85,14 @@ export function GameEngine() {
               For now this is a visual mock. Actual blockchain calls will be
               wired in later.
             </p>
+            <div className="mt-4 rounded-xl border border-sky-800/60 bg-slate-950/80 p-3 animate-fade-in">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-sky-400">
+                Guide AI
+              </p>
+              <p className="mt-2 rounded-lg bg-sky-500/10 px-3 py-2 text-xs leading-relaxed text-sky-100">
+                {guideMessage}
+              </p>
+            </div>
           </div>
         </section>
 
@@ -81,6 +122,11 @@ export function GameEngine() {
           <ConsolePanel />
         </section>
       </main>
+      {successMessage && (
+        <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 animate-slide-up rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-4 py-2 text-sm text-emerald-100 shadow-lg shadow-emerald-900/40">
+          {successMessage}
+        </div>
+      )}
     </div>
   );
 }
