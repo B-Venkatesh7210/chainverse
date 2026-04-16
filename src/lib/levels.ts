@@ -1,6 +1,7 @@
 export type LevelActionContext = {
   log: (message: string) => void;
   setResult: (result: unknown) => void;
+  input?: Record<string, string>;
 };
 
 export type LevelAction = (context: LevelActionContext) => Promise<unknown>;
@@ -60,7 +61,39 @@ console.log(wallet);`,
 const address = "YOUR_WALLET_ADDRESS";
 const balance = await getBalance(address);
 console.log(balance);`,
-    action: notImplementedAction,
+    action: async ({ log, setResult, input }) => {
+      const address = input?.address?.trim();
+      if (!address) {
+        throw new Error("Wallet address is required.");
+      }
+
+      log(`Level 2 request: fetching balance for ${address}`);
+      const response = await fetch("/api/levels/fetch-balance", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to fetch balance.");
+      }
+
+      const result = (await response.json()) as {
+        address: string;
+        ethBalance: string;
+        rawBalance: string;
+      };
+
+      setResult(result);
+      log(
+        `Level 2 response: ${result.address} has ${result.ethBalance} ETH (raw: ${result.rawBalance})`
+      );
+
+      return result;
+    },
   },
   {
     id: 3,

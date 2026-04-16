@@ -14,6 +14,7 @@ type LevelCardProps = {
 export function LevelCard({ level, levelLabel }: LevelCardProps) {
   const [open, setOpen] = React.useState(false);
   const [isRunning, setIsRunning] = React.useState(false);
+  const [addressInput, setAddressInput] = React.useState("");
   const addLog = useGameStore((state) => state.addLog);
   const setLevelResult = useGameStore((state) => state.setLevelResult);
   const levelResult = useGameStore((state) => state.levelResults[level.id]);
@@ -24,6 +25,12 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
   const maskedPrivateKey = walletResult?.privateKey
     ? `${walletResult.privateKey.slice(0, 8)}...${walletResult.privateKey.slice(-6)}`
     : null;
+  const balanceResult =
+    level.id === 2
+      ? (levelResult as
+          | { address: string; ethBalance: string; rawBalance: string }
+          | undefined)
+      : undefined;
 
   const handleTest = async () => {
     setIsRunning(true);
@@ -31,6 +38,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
       await level.action({
         log: addLog,
         setResult: (result) => setLevelResult(level.id, result),
+        input: level.id === 2 ? { address: addressInput } : undefined,
       });
     } catch (error) {
       const message =
@@ -78,6 +86,23 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             <code>{level.codeSnippet}</code>
           </pre>
         </div>
+        {level.id === 2 && (
+          <div className="mt-4">
+            <label
+              htmlFor={`wallet-address-${level.id}`}
+              className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500"
+            >
+              Wallet Address
+            </label>
+            <input
+              id={`wallet-address-${level.id}`}
+              value={addressInput}
+              onChange={(e) => setAddressInput(e.target.value)}
+              placeholder="0x..."
+              className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            />
+          </div>
+        )}
         <button
           type="button"
           onClick={() => {
@@ -86,7 +111,14 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           disabled={isRunning}
           className="mt-4 inline-flex items-center justify-center rounded-md border border-sky-500/60 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-200 transition hover:bg-sky-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
         >
-          {isRunning ? "Running..." : "Let's Test It"}
+          {isRunning ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-sky-200 border-t-transparent" />
+              Loading...
+            </span>
+          ) : (
+            "Let's Test It"
+          )}
         </button>
         {walletResult && (
           <div className="mt-4 rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 text-xs">
@@ -106,6 +138,20 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
                 {walletResult.mnemonic}
               </p>
             )}
+          </div>
+        )}
+        {balanceResult && (
+          <div className="mt-4 rounded-lg border border-cyan-700/50 bg-cyan-900/10 p-3 text-xs">
+            <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-cyan-400">
+              Balance Result
+            </p>
+            <p className="break-all text-zinc-200">
+              <span className="text-zinc-500">Address:</span> {balanceResult.address}
+            </p>
+            <p className="mt-1 text-zinc-100">
+              <span className="text-zinc-500">ETH Balance:</span>{" "}
+              {balanceResult.ethBalance} ETH
+            </p>
           </div>
         )}
       </Modal>
