@@ -15,6 +15,15 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
   const [open, setOpen] = React.useState(false);
   const [isRunning, setIsRunning] = React.useState(false);
   const [addressInput, setAddressInput] = React.useState("");
+  const [webhookInput, setWebhookInput] = React.useState(
+    "https://example.com/mock-webhook"
+  );
+  const [mockWebhookEvent, setMockWebhookEvent] = React.useState<{
+    txId: string;
+    amountEth: string;
+    status: string;
+    timestamp: string;
+  } | null>(null);
   const addLog = useGameStore((state) => state.addLog);
   const setLevelResult = useGameStore((state) => state.setLevelResult);
   const levelResult = useGameStore((state) => state.levelResults[level.id]);
@@ -42,6 +51,17 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             }
           | undefined)
       : undefined;
+  const subscriptionResult =
+    level.id === 4
+      ? (levelResult as
+          | {
+              type: string;
+              address: string;
+              webhookUrl: string;
+              subscription: unknown;
+            }
+          | undefined)
+      : undefined;
 
   const handleTest = async () => {
     setIsRunning(true);
@@ -50,8 +70,8 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
         log: addLog,
         setResult: (result) => setLevelResult(level.id, result),
         input:
-          level.id === 2 || level.id === 5
-            ? { address: addressInput }
+          level.id === 2 || level.id === 5 || level.id === 4
+            ? { address: addressInput, webhookUrl: webhookInput }
             : undefined,
       });
     } catch (error) {
@@ -100,7 +120,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             <code>{level.codeSnippet}</code>
           </pre>
         </div>
-        {(level.id === 2 || level.id === 5) && (
+        {(level.id === 2 || level.id === 5 || level.id === 4) && (
           <div className="mt-4">
             <label
               htmlFor={`wallet-address-${level.id}`}
@@ -115,6 +135,26 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
               placeholder="0x..."
               className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
             />
+          </div>
+        )}
+        {level.id === 4 && (
+          <div className="mt-3">
+            <label
+              htmlFor={`webhook-url-${level.id}`}
+              className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500"
+            >
+              Webhook URL (mock for now)
+            </label>
+            <input
+              id={`webhook-url-${level.id}`}
+              value={webhookInput}
+              onChange={(e) => setWebhookInput(e.target.value)}
+              placeholder="https://example.com/mock-webhook"
+              className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            />
+            <p className="mt-2 text-xs text-zinc-400">
+              This triggers webhook when tx happens.
+            </p>
           </div>
         )}
         <button
@@ -188,6 +228,62 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
               <span className="text-zinc-500">RPC Balance:</span>{" "}
               {rpcResult.rpc.ethBalance} ETH
             </p>
+          </div>
+        )}
+        {subscriptionResult && (
+          <div className="mt-4 rounded-lg border border-amber-700/50 bg-amber-900/10 p-3 text-xs">
+            <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-amber-400">
+              Subscription Result
+            </p>
+            <p className="text-zinc-200">
+              <span className="text-zinc-500">Type:</span> {subscriptionResult.type}
+            </p>
+            <p className="mt-1 break-all text-zinc-200">
+              <span className="text-zinc-500">Address:</span>{" "}
+              {subscriptionResult.address}
+            </p>
+            <p className="mt-1 break-all text-zinc-200">
+              <span className="text-zinc-500">Webhook URL:</span>{" "}
+              {subscriptionResult.webhookUrl}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const event = {
+                  txId: `0xmock${Math.random().toString(16).slice(2, 14)}`,
+                  amountEth: (Math.random() * 0.05 + 0.001).toFixed(6),
+                  status: "CONFIRMED",
+                  timestamp: new Date().toISOString(),
+                };
+                setMockWebhookEvent(event);
+                addLog(
+                  `Level 4 mock webhook fired: tx=${event.txId}, amount=${event.amountEth} ETH, status=${event.status}`
+                );
+              }}
+              className="mt-3 inline-flex items-center justify-center rounded-md border border-amber-500/60 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            >
+              Simulate Webhook Event (Mock)
+            </button>
+            {mockWebhookEvent && (
+              <div className="mt-3 rounded-md border border-zinc-700 bg-black/40 p-2">
+                <p className="text-[11px] text-zinc-300">
+                  <span className="text-zinc-500">txId:</span>{" "}
+                  {mockWebhookEvent.txId}
+                </p>
+                <p className="mt-1 text-[11px] text-zinc-300">
+                  <span className="text-zinc-500">amount:</span>{" "}
+                  {mockWebhookEvent.amountEth} ETH
+                </p>
+                <p className="mt-1 text-[11px] text-zinc-300">
+                  <span className="text-zinc-500">status:</span>{" "}
+                  {mockWebhookEvent.status}
+                </p>
+                <p className="mt-1 text-[11px] text-zinc-300">
+                  <span className="text-zinc-500">timestamp:</span>{" "}
+                  {mockWebhookEvent.timestamp}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </Modal>

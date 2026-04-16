@@ -113,14 +113,57 @@ console.log(txHash);`,
     id: 4,
     title: "Enable Notifications",
     description: "Subscribe to address activity using a webhook endpoint.",
-    codeSnippet: `import { createSubscription } from "@/lib/tatum";
-
-const sub = await createSubscription({
-  address: "WATCH_ADDRESS",
-  url: process.env.NOTIFICATION_WEBHOOK_URL!,
+    codeSnippet: `const response = await fetch("/api/levels/create-subscription", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    address: "WATCH_ADDRESS",
+    webhookUrl: "https://example.com/webhook",
+  }),
 });
-console.log(sub);`,
-    action: notImplementedAction,
+const result = await response.json();
+console.log(result.type); // ADDRESS_TRANSACTION`,
+    action: async ({ log, setResult, input }) => {
+      const address = input?.address?.trim();
+      const webhookUrl = input?.webhookUrl?.trim();
+
+      if (!address) {
+        throw new Error("Wallet address is required.");
+      }
+      if (!webhookUrl) {
+        throw new Error("Webhook URL is required.");
+      }
+
+      log(
+        `Level 4 request: creating ADDRESS_TRANSACTION subscription for ${address} -> ${webhookUrl}`
+      );
+
+      const response = await fetch("/api/levels/create-subscription", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address, webhookUrl }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to create subscription.");
+      }
+
+      const result = (await response.json()) as {
+        type: string;
+        address: string;
+        webhookUrl: string;
+        subscription: unknown;
+      };
+
+      setResult(result);
+      log(
+        `Level 4 response: subscription created (${result.type}) for ${result.address}`
+      );
+      return result;
+    },
   },
   {
     id: 5,
