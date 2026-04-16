@@ -1,4 +1,9 @@
-export type LevelAction = () => Promise<unknown>;
+export type LevelActionContext = {
+  log: (message: string) => void;
+  setResult: (result: unknown) => void;
+};
+
+export type LevelAction = (context: LevelActionContext) => Promise<unknown>;
 
 export type Level = {
   id: number;
@@ -8,7 +13,8 @@ export type Level = {
   action: LevelAction;
 };
 
-const notImplementedAction = async () => {
+const notImplementedAction = async ({ log }: LevelActionContext) => {
+  log("This level is not implemented yet.");
   throw new Error("Level action is not implemented yet.");
 };
 
@@ -21,7 +27,29 @@ export const levels: Level[] = [
 
 const wallet = await generateWallet();
 console.log(wallet);`,
-    action: notImplementedAction,
+    action: async ({ log, setResult }) => {
+      log("Level 1 started: generating wallet on Ethereum Sepolia...");
+      const response = await fetch("/api/levels/generate-wallet", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to generate wallet.");
+      }
+      const wallet = (await response.json()) as {
+        address: string;
+        privateKey: string;
+        mnemonic?: string;
+      };
+      const result = {
+        address: wallet.address,
+        privateKey: wallet.privateKey,
+        mnemonic: wallet.mnemonic,
+      };
+      setResult(result);
+      log(`Wallet generated: ${wallet.address}`);
+      return result;
+    },
   },
   {
     id: 2,

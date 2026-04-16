@@ -40,11 +40,16 @@ export async function generateWallet() {
   const mnemonic = walletProvider.generateMnemonic();
   const xpub = await walletProvider.generateXpubFromMnemonic(mnemonic);
   const address = await walletProvider.generateAddressFromMnemonic(mnemonic, 0);
+  const privateKey = await walletProvider.generatePrivateKeyFromMnemonic(
+    mnemonic,
+    0
+  );
 
   return {
     mnemonic,
     xpub,
     address,
+    privateKey,
   };
 }
 
