@@ -38,7 +38,7 @@ export async function generateWallet() {
   const walletProvider = tatum.walletProvider.use(EvmWalletProvider);
 
   const mnemonic = walletProvider.generateMnemonic();
-  const xpub = await walletProvider.generateXpubFromMnemonic(mnemonic);
+  const xpubDetails = await walletProvider.generateXpub(mnemonic);
   const address = await walletProvider.generateAddressFromMnemonic(mnemonic, 0);
   const privateKey = await walletProvider.generatePrivateKeyFromMnemonic(
     mnemonic,
@@ -47,7 +47,7 @@ export async function generateWallet() {
 
   return {
     mnemonic,
-    xpub,
+    xpub: xpubDetails.xpub,
     address,
     privateKey,
   };

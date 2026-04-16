@@ -3,6 +3,7 @@
 import React from "react";
 import { CheckCircle2, Play } from "lucide-react";
 import { Modal } from "./Modal";
+import { CodeSnippet } from "./CodeSnippet";
 import type { Level } from "@/lib/levels";
 import { useGameStore, type WalletLevelResult } from "@/store/gameStore";
 
@@ -24,6 +25,9 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
     status: string;
     timestamp: string;
   } | null>(null);
+  const [shouldScrollToResult, setShouldScrollToResult] = React.useState(false);
+  const resultAreaRef = React.useRef<HTMLDivElement>(null);
+  const mockEventRef = React.useRef<HTMLDivElement>(null);
   const addLog = useGameStore((state) => state.addLog);
   const setLevelResult = useGameStore((state) => state.setLevelResult);
   const markLevelCompleted = useGameStore((state) => state.markLevelCompleted);
@@ -53,7 +57,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
               address: string;
               blockNumber: string;
               rpc: { ethBalance: string; rawBalance: string };
-              dataApi: { ethBalance: string; rawBalance: string };
+              dataApi: { ethBalance: string | null; rawBalance: string | null };
             }
           | undefined)
       : undefined;
@@ -107,6 +111,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
       window.setTimeout(() => {
         setSuccessMessage(null);
       }, 2500);
+      setShouldScrollToResult(true);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unknown execution error.";
@@ -115,6 +120,29 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
       setIsRunning(false);
     }
   };
+
+  React.useEffect(() => {
+    if (!open || !shouldScrollToResult) return;
+    const timer = window.setTimeout(() => {
+      resultAreaRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+      setShouldScrollToResult(false);
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [open, shouldScrollToResult]);
+
+  React.useEffect(() => {
+    if (!open || !mockWebhookEvent) return;
+    const id = window.requestAnimationFrame(() => {
+      mockEventRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [open, mockWebhookEvent]);
 
   return (
     <>
@@ -158,13 +186,11 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
         title={`${levelLabel}: ${level.title}`}
       >
         <p className="text-sm text-zinc-300">{level.description}</p>
-        <div className="mt-4 rounded-lg border border-zinc-800 bg-black/60 p-3">
+        <div className="mt-4">
           <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-zinc-500">
             Code Snippet
           </p>
-          <pre className="overflow-x-auto text-xs text-sky-300">
-            <code>{level.codeSnippet}</code>
-          </pre>
+          <CodeSnippet code={level.codeSnippet} language="typescript" />
         </div>
         {(level.id === 2 || level.id === 5 || level.id === 4) && (
           <div className="mt-4">
@@ -220,8 +246,12 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             "Let's Test It"
           )}
         </button>
+        <div
+          ref={resultAreaRef}
+          className="mt-4 scroll-mt-6 space-y-4 empty:hidden"
+        >
         {walletResult && (
-          <div className="mt-4 rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 text-xs">
+          <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 text-xs">
             <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-emerald-400">
               Result
             </p>
@@ -241,7 +271,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           </div>
         )}
         {balanceResult && (
-          <div className="mt-4 rounded-lg border border-cyan-700/50 bg-cyan-900/10 p-3 text-xs">
+          <div className="rounded-lg border border-cyan-700/50 bg-cyan-900/10 p-3 text-xs">
             <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-cyan-400">
               Balance Result
             </p>
@@ -255,7 +285,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           </div>
         )}
         {rpcResult && (
-          <div className="mt-4 rounded-lg border border-violet-700/50 bg-violet-900/10 p-3 text-xs">
+          <div className="rounded-lg border border-violet-700/50 bg-violet-900/10 p-3 text-xs">
             <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-violet-400">
               RPC vs Data API
             </p>
@@ -268,7 +298,9 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             </p>
             <p className="mt-1 text-zinc-100">
               <span className="text-zinc-500">Data API Balance:</span>{" "}
-              {rpcResult.dataApi.ethBalance} ETH
+              {rpcResult.dataApi.ethBalance === null
+                ? "TODO (pending docs-confirmed field mapping)"
+                : `${rpcResult.dataApi.ethBalance} ETH`}
             </p>
             <p className="mt-1 text-zinc-100">
               <span className="text-zinc-500">RPC Balance:</span>{" "}
@@ -277,7 +309,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           </div>
         )}
         {subscriptionResult && (
-          <div className="mt-4 rounded-lg border border-amber-700/50 bg-amber-900/10 p-3 text-xs">
+          <div className="rounded-lg border border-amber-700/50 bg-amber-900/10 p-3 text-xs">
             <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-amber-400">
               Subscription Result
             </p>
@@ -311,7 +343,10 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
               Simulate Webhook Event (Mock)
             </button>
             {mockWebhookEvent && (
-              <div className="mt-3 rounded-md border border-zinc-700 bg-black/40 p-2">
+              <div
+                ref={mockEventRef}
+                className="mt-3 rounded-md border border-zinc-700 bg-black/40 p-2"
+              >
                 <p className="text-[11px] text-zinc-300">
                   <span className="text-zinc-500">txId:</span>{" "}
                   {mockWebhookEvent.txId}
@@ -332,6 +367,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             )}
           </div>
         )}
+        </div>
       </Modal>
     </>
   );

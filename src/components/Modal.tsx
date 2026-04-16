@@ -12,9 +12,9 @@ export function Modal({ open, title, children, onClose }: ModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-md rounded-2xl border border-sky-900/70 bg-slate-950/95 p-5 shadow-2xl animate-scale-in">
-        <div className="mb-3 flex items-center justify-between gap-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
+      <div className="flex max-h-[90vh] w-full max-w-[80vw] flex-col overflow-hidden rounded-2xl border border-sky-900/70 bg-slate-950/95 shadow-2xl animate-scale-in">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-800/80 px-5 py-4">
           <div>
             {title && (
               <h3 className="text-sm font-semibold tracking-wide text-zinc-100">
@@ -34,7 +34,9 @@ export function Modal({ open, title, children, onClose }: ModalProps) {
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
-        <div className="text-sm text-zinc-200">{children}</div>
+        <div className="min-w-0 flex-1 overflow-y-auto px-5 py-4 text-sm text-zinc-200">
+          {children}
+        </div>
       </div>
     </div>
   );

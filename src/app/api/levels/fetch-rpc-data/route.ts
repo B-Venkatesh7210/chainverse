@@ -16,14 +16,6 @@ function weiLikeToEthString(value: string): string {
   return fraction ? `${whole}.${fraction}` : whole;
 }
 
-function extractDataApiNativeBalance(entry: unknown): string {
-  if (!entry || typeof entry !== "object") return "0";
-  const maybe = entry as Record<string, unknown>;
-  const value = maybe.balance ?? maybe.nativeBalance ?? maybe.availableBalance;
-  if (value == null) return "0";
-  return String(value);
-}
-
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { address?: string };
@@ -42,7 +34,6 @@ export async function POST(request: Request) {
     const rpcBalanceResult = String(
       (balanceRpcRaw as { result?: string }).result ?? "0"
     );
-    const dataApiRawBalance = extractDataApiNativeBalance(dataApiEntry);
 
     return NextResponse.json({
       address,
@@ -55,8 +46,10 @@ export async function POST(request: Request) {
         rawJsonRpc: balanceRpcRaw,
       },
       dataApi: {
-        ethBalance: weiLikeToEthString(dataApiRawBalance),
-        rawBalance: dataApiRawBalance,
+        // TODO: Map a concrete native-balance field only after confirming exact
+        // Tatum Data API response shape from the provided docs.
+        ethBalance: null,
+        rawBalance: null,
         rawData: dataApiEntry,
       },
       rawBlockNumberJsonRpc: blockNumberRpcRaw,

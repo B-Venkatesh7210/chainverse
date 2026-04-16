@@ -24,10 +24,31 @@ export const levels: Level[] = [
     id: 1,
     title: "Generate Wallet",
     description: "Create a new Ethereum wallet for the player profile.",
-    codeSnippet: `import { generateWallet } from "@/lib/tatum";
+    codeSnippet: `import { TatumSDK, Network, ApiVersion } from "@tatumio/tatum";
+import { EvmWalletProvider } from "@tatumio/evm-wallet-provider";
 
-const wallet = await generateWallet();
-console.log(wallet);`,
+const tatum = await TatumSDK.init({
+  network: Network.ETHEREUM_SEPOLIA,
+  version: ApiVersion.V4,
+  apiKey: { v4: process.env.TATUM_API_KEY_V4! },
+  configureWalletProviders: [EvmWalletProvider],
+});
+
+const walletProvider = tatum.walletProvider.use(EvmWalletProvider);
+
+// Step 1: generate mnemonic
+const mnemonic = walletProvider.generateMnemonic();
+
+// Step 2: derive xpub
+const xpubDetails = await walletProvider.generateXpub(mnemonic);
+
+// Step 3: derive address (index 0)
+const address = await walletProvider.generateAddressFromMnemonic(mnemonic, 0);
+
+// Step 4: derive private key (index 0)
+const privateKey = await walletProvider.generatePrivateKeyFromMnemonic(mnemonic, 0);
+
+console.log({ mnemonic, xpub: xpubDetails.xpub, address, privateKey });`,
     action: async ({ log, setResult }) => {
       log("Level 1 started: generating wallet on Ethereum Sepolia...");
       const response = await fetch("/api/levels/generate-wallet", {
@@ -200,7 +221,7 @@ console.log(result.rpc.rawJsonRpc);`,
       const result = (await response.json()) as {
         blockNumber: string;
         rpc: { ethBalance: string; rawJsonRpc: unknown };
-        dataApi: { ethBalance: string };
+        dataApi: { ethBalance: string | null };
         rawBlockNumberJsonRpc: unknown;
       };
 
@@ -208,9 +229,13 @@ console.log(result.rpc.rawJsonRpc);`,
       log(`Level 5 response: blockNumber=${result.blockNumber}`);
       log(`Level 5 raw JSON-RPC blockNumber: ${JSON.stringify(result.rawBlockNumberJsonRpc)}`);
       log(`Level 5 raw JSON-RPC getBalance: ${JSON.stringify(result.rpc.rawJsonRpc)}`);
-      log(
-        `Level 5 compare: Data API=${result.dataApi.ethBalance} ETH vs RPC=${result.rpc.ethBalance} ETH`
-      );
+      if (result.dataApi.ethBalance === null) {
+        log("Level 5 compare: TODO - Data API balance field mapping pending docs confirmation.");
+      } else {
+        log(
+          `Level 5 compare: Data API=${result.dataApi.ethBalance} ETH vs RPC=${result.rpc.ethBalance} ETH`
+        );
+      }
 
       return result;
     },
