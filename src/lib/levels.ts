@@ -19,6 +19,8 @@ const notImplementedAction = async ({ log }: LevelActionContext) => {
   throw new Error("Level action is not implemented yet.");
 };
 
+import { connectMetaMaskWallet } from "@/lib/metamaskWallet";
+
 export const levels: Level[] = [
   {
     id: 1,
@@ -77,11 +79,22 @@ console.log({ mnemonic, xpub: xpubDetails.xpub, address, privateKey });`,
     id: 2,
     title: "Fetch Balance",
     description: "Read the current balance of a selected wallet address.",
-    codeSnippet: `import { getBalance } from "@/lib/tatum";
+    codeSnippet: `import { TatumSDK, Network, Ethereum, ApiVersion } from "@tatumio/tatum";
+import { EvmWalletProvider } from "@tatumio/evm-wallet-provider";
+
+const tatum = await TatumSDK.init<Ethereum>({
+  network: Network.ETHEREUM_SEPOLIA,
+  version: ApiVersion.V4,
+  apiKey: { v4: process.env.TATUM_API_KEY_V4! },
+  configureWalletProviders: [EvmWalletProvider],
+});
 
 const address = "YOUR_WALLET_ADDRESS";
-const balance = await getBalance(address);
-console.log(balance);`,
+
+// Native balance via Tatum RPC (same path as this level's API route)
+const { result } = await tatum.rpc.getBalance(address);
+
+console.log({ address, rawBalance: result });`,
     action: async ({ log, setResult, input }) => {
       const address = input?.address?.trim();
       if (!address) {
@@ -118,6 +131,34 @@ console.log(balance);`,
   },
   {
     id: 3,
+    title: "Connect Wallet (MetaMask)",
+    description:
+      "Uses EIP-6963 multi-wallet discovery when available, then falls back to window.ethereum.providers. Same chain: Sepolia.",
+    codeSnippet: `// Production fix for multiple wallets: EIP-6963 (see https://eips.ethereum.org/EIPS/eip-6963)
+
+window.addEventListener("eip6963:announceProvider", (event) => {
+  const { info, provider } = (event as CustomEvent).detail;
+  if (info.rdns === "io.metamask") {
+    // use \`provider\` — not window.ethereum
+  }
+});
+window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+// Then: await provider.request({ method: "eth_requestAccounts" })
+
+// Tatum: getWallet() uses window.ethereum — fine only when MM owns that global.
+// await tatum.walletProvider.use(MetaMask).getWallet()`,
+    action: async ({ log, setResult }) => {
+      log("Level 3: requesting MetaMask connection…");
+      const address = await connectMetaMaskWallet();
+      const result = { address };
+      setResult(result);
+      log(`Level 3: connected wallet ${address}`);
+      return result;
+    },
+  },
+  {
+    id: 4,
     title: "Send Transaction",
     description: "Broadcast a signed value transfer on Ethereum Sepolia.",
     codeSnippet: `import { sendTransaction } from "@/lib/tatum";
@@ -131,7 +172,7 @@ console.log(txHash);`,
     action: notImplementedAction,
   },
   {
-    id: 4,
+    id: 5,
     title: "Enable Notifications",
     description: "Subscribe to address activity using a webhook endpoint.",
     codeSnippet: `const response = await fetch("/api/levels/create-subscription", {
@@ -156,7 +197,7 @@ console.log(result.type); // ADDRESS_TRANSACTION`,
       }
 
       log(
-        `Level 4 request: creating ADDRESS_TRANSACTION subscription for ${address} -> ${webhookUrl}`
+        `Level 5 request: creating ADDRESS_TRANSACTION subscription for ${address} -> ${webhookUrl}`
       );
 
       const response = await fetch("/api/levels/create-subscription", {
@@ -181,13 +222,13 @@ console.log(result.type); // ADDRESS_TRANSACTION`,
 
       setResult(result);
       log(
-        `Level 4 response: subscription created (${result.type}) for ${result.address}`
+        `Level 5 response: subscription created (${result.type}) for ${result.address}`
       );
       return result;
     },
   },
   {
-    id: 5,
+    id: 6,
     title: "Fetch Block Data (RPC)",
     description: "Query chain state directly through the Tatum RPC client.",
     codeSnippet: `const response = await fetch("/api/levels/fetch-rpc-data", {
@@ -204,7 +245,7 @@ console.log(result.rpc.rawJsonRpc);`,
         throw new Error("Wallet address is required.");
       }
 
-      log(`Level 5 request: RPC blockNumber + getBalance for ${address}`);
+      log(`Level 6 request: RPC blockNumber + getBalance for ${address}`);
       const response = await fetch("/api/levels/fetch-rpc-data", {
         method: "POST",
         headers: {
@@ -226,14 +267,14 @@ console.log(result.rpc.rawJsonRpc);`,
       };
 
       setResult(result);
-      log(`Level 5 response: blockNumber=${result.blockNumber}`);
-      log(`Level 5 raw JSON-RPC blockNumber: ${JSON.stringify(result.rawBlockNumberJsonRpc)}`);
-      log(`Level 5 raw JSON-RPC getBalance: ${JSON.stringify(result.rpc.rawJsonRpc)}`);
+      log(`Level 6 response: blockNumber=${result.blockNumber}`);
+      log(`Level 6 raw JSON-RPC blockNumber: ${JSON.stringify(result.rawBlockNumberJsonRpc)}`);
+      log(`Level 6 raw JSON-RPC getBalance: ${JSON.stringify(result.rpc.rawJsonRpc)}`);
       if (result.dataApi.ethBalance === null) {
-        log("Level 5 compare: TODO - Data API balance field mapping pending docs confirmation.");
+        log("Level 6 compare: TODO - Data API balance field mapping pending docs confirmation.");
       } else {
         log(
-          `Level 5 compare: Data API=${result.dataApi.ethBalance} ETH vs RPC=${result.rpc.ethBalance} ETH`
+          `Level 6 compare: Data API=${result.dataApi.ethBalance} ETH vs RPC=${result.rpc.ethBalance} ETH`
         );
       }
 

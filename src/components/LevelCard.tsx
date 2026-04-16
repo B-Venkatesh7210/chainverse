@@ -12,6 +12,25 @@ type LevelCardProps = {
   levelLabel: string;
 };
 
+function formatActionError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const o = error as { message?: unknown; code?: unknown };
+    if (typeof o.message === "string" && o.message.length > 0) {
+      const code =
+        typeof o.code === "number" || typeof o.code === "string"
+          ? ` (code ${o.code})`
+          : "";
+      return `${o.message}${code}`;
+    }
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
 export function LevelCard({ level, levelLabel }: LevelCardProps) {
   const [open, setOpen] = React.useState(false);
   const [isRunning, setIsRunning] = React.useState(false);
@@ -50,8 +69,13 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           | { address: string; ethBalance: string; rawBalance: string }
           | undefined)
       : undefined;
+  const connectWalletResult =
+    level.id === 3
+      ? (levelResult as { address: string } | undefined)
+      : undefined;
+
   const rpcResult =
-    level.id === 5
+    level.id === 6
       ? (levelResult as
           | {
               address: string;
@@ -62,7 +86,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           | undefined)
       : undefined;
   const subscriptionResult =
-    level.id === 4
+    level.id === 5
       ? (levelResult as
           | {
               type: string;
@@ -80,15 +104,21 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
         log: addLog,
         setResult: (result) => setLevelResult(level.id, result),
         input:
-          level.id === 2 || level.id === 5 || level.id === 4
+          level.id === 2 || level.id === 5 || level.id === 6
             ? { address: addressInput, webhookUrl: webhookInput }
             : undefined,
       });
       markLevelCompleted(level.id);
+      if (level.id === 3) {
+        const r = useGameStore.getState().levelResults[3] as
+          | { address?: string }
+          | undefined;
+        if (r?.address) setAddressInput(r.address);
+      }
       setSuccessMessage(`Level ${level.id} complete: ${level.title}`);
       setGuideMessage(
         `Great run. ${
-          level.id < 5
+          level.id < 6
             ? `Proceed to Level ${level.id + 1} to continue repairing ChainVerse.`
             : "All levels cleared. ChainVerse systems are stabilizing."
         }`
@@ -113,9 +143,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
       }, 2500);
       setShouldScrollToResult(true);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown execution error.";
-      addLog(`Level ${level.id} failed: ${message}`);
+      addLog(`Level ${level.id} failed: ${formatActionError(error)}`);
     } finally {
       setIsRunning(false);
     }
@@ -186,13 +214,20 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
         title={`${levelLabel}: ${level.title}`}
       >
         <p className="text-sm text-zinc-300">{level.description}</p>
+        {level.id === 3 && (
+          <p className="mt-2 text-xs text-amber-200/90">
+            This level uses EIP-6963 to find MetaMask even if other wallets are
+            installed. Unlock MetaMask and switch to Sepolia if prompted. Very old
+            MetaMask builds without EIP-6963 may still need other wallets disabled.
+          </p>
+        )}
         <div className="mt-4">
           <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-zinc-500">
             Code Snippet
           </p>
           <CodeSnippet code={level.codeSnippet} language="typescript" />
         </div>
-        {(level.id === 2 || level.id === 5 || level.id === 4) && (
+        {(level.id === 2 || level.id === 5 || level.id === 6) && (
           <div className="mt-4">
             <label
               htmlFor={`wallet-address-${level.id}`}
@@ -209,7 +244,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             />
           </div>
         )}
-        {level.id === 4 && (
+        {level.id === 5 && (
           <div className="mt-3">
             <label
               htmlFor={`webhook-url-${level.id}`}
@@ -268,6 +303,17 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
                 {walletResult.mnemonic}
               </p>
             )}
+          </div>
+        )}
+        {connectWalletResult && (
+          <div className="rounded-lg border border-orange-700/50 bg-orange-950/30 p-3 text-xs">
+            <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-orange-300">
+              Connected account
+            </p>
+            <p className="break-all text-zinc-100">
+              <span className="text-zinc-500">Address:</span>{" "}
+              {connectWalletResult.address}
+            </p>
           </div>
         )}
         {balanceResult && (
@@ -335,7 +381,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
                 };
                 setMockWebhookEvent(event);
                 addLog(
-                  `Level 4 mock webhook fired: tx=${event.txId}, amount=${event.amountEth} ETH, status=${event.status}`
+                  `Level 5 mock webhook fired: tx=${event.txId}, amount=${event.amountEth} ETH, status=${event.status}`
                 );
               }}
               className="mt-3 inline-flex items-center justify-center rounded-md border border-amber-500/60 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
