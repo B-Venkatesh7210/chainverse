@@ -1,13 +1,14 @@
 import React from "react";
 import { Play } from "lucide-react";
 import { Modal } from "./Modal";
+import type { Level } from "@/lib/levels";
 
 type LevelCardProps = {
-  title: string;
-  subtitle: string;
+  level: Level;
+  levelLabel: string;
 };
 
-export function LevelCard({ title, subtitle }: LevelCardProps) {
+export function LevelCard({ level, levelLabel }: LevelCardProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -20,32 +21,42 @@ export function LevelCard({ title, subtitle }: LevelCardProps) {
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-400">
-              {title}
+              {levelLabel}
             </p>
-            <p className="mt-1 text-sm text-zinc-200">{subtitle}</p>
+            <p className="mt-1 text-sm text-zinc-200">{level.title}</p>
           </div>
           <div className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-500/60 bg-sky-500/20 text-sky-300 transition group-hover:shadow-neon-blue">
             <Play className="h-4 w-4 fill-sky-400/40" />
           </div>
         </div>
         <p className="mt-3 text-[11px] text-zinc-500">
-          Placeholder only. Logic will be connected to Tatum later.
+          {level.description}
         </p>
       </button>
 
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title={`${title} – Coming soon`}
+        title={`${levelLabel}: ${level.title}`}
       >
-        <p className="text-sm text-zinc-300">
-          This level will trigger a blockchain action via{" "}
-          <span className="text-sky-300">Tatum</span>.
-        </p>
-        <p className="mt-2 text-xs text-zinc-500">
-          For now, this is just a visual shell so you can design the flow and
-          interactions.
-        </p>
+        <p className="text-sm text-zinc-300">{level.description}</p>
+        <div className="mt-4 rounded-lg border border-zinc-800 bg-black/60 p-3">
+          <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+            Code Snippet
+          </p>
+          <pre className="overflow-x-auto text-xs text-sky-300">
+            <code>{level.codeSnippet}</code>
+          </pre>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            void level.action();
+          }}
+          className="mt-4 inline-flex items-center justify-center rounded-md border border-sky-500/60 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-200 transition hover:bg-sky-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        >
+          Let&apos;s Test It
+        </button>
       </Modal>
     </>
   );

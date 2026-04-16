@@ -29,6 +29,10 @@ async function getClient(): Promise<EthereumClient> {
   return clientPromise;
 }
 
+export async function getTatumClient() {
+  return getClient();
+}
+
 export async function generateWallet() {
   const tatum = await getClient();
   const walletProvider = tatum.walletProvider.use(EvmWalletProvider);

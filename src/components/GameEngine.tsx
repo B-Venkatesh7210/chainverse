@@ -1,6 +1,7 @@
 import React from "react";
 import { LevelCard } from "./LevelCard";
 import { ConsolePanel } from "./ConsolePanel";
+import { levels } from "@/lib/levels";
 
 export function GameEngine() {
   return (
@@ -63,12 +64,13 @@ export function GameEngine() {
             </p>
           </div>
           <div className="grid flex-1 grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
-            <LevelCard title="Level 1" subtitle="Generate wallet" />
-            <LevelCard title="Level 2" subtitle="Get balance" />
-            <LevelCard title="Level 3" subtitle="Send transaction" />
-            <LevelCard title="Level 4" subtitle="Deploy NFT" />
-            <LevelCard title="Level 5" subtitle="Mint token" />
-            <LevelCard title="Level 6" subtitle="Custom script" />
+            {levels.map((level) => (
+              <LevelCard
+                key={level.id}
+                level={level}
+                levelLabel={`Level ${level.id}`}
+              />
+            ))}
           </div>
         </section>
 
