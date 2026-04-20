@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ChainVerse",
+  title: "BlockVille",
   description: "Interactive Tatum-powered blockchain demo",
 };
 

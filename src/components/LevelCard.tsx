@@ -123,7 +123,7 @@ export function LevelCard({ level }: LevelCardProps) {
         `Great run. ${
           completedLevels.length + 1 < 6
             ? "Another chapter awaits."
-            : "All chapters cleared. ChainVerse systems are stabilizing."
+            : "All chapters cleared. BlockVille systems are stabilizing."
         }`
       );
       if (soundEnabled && typeof window !== "undefined") {

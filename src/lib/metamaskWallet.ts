@@ -1,24 +1,34 @@
 "use client";
 
-/**
- * EIP-6963: Multi Injected Provider Discovery
- * https://eips.ethereum.org/EIPS/eip-6963
- *
- * MetaMask documents using this instead of `window.ethereum` when multiple wallets
- * may be installed — each wallet announces its own EIP-1193 `provider`.
- */
+import { ApiVersion, MetaMask, Network, TatumSDK, type Ethereum } from "@tatumio/tatum";
 
-type EIP6963ProviderInfo = {
-  uuid: string;
-  name: string;
-  icon: string;
-  rdns: string;
-};
+type EthereumClient = Awaited<ReturnType<typeof TatumSDK.init<Ethereum>>>;
 
-type EIP6963ProviderDetail = {
-  info: EIP6963ProviderInfo;
-  provider: InjectedProvider;
-};
+let browserClientPromise: Promise<EthereumClient> | null = null;
+const SEPOLIA_CHAIN_ID_HEX = "0xaa36a7";
+
+function getPublicApiKey(): string | undefined {
+  return (
+    process.env.NEXT_PUBLIC_TATUM_API_KEY_V4 ?? process.env.NEXT_PUBLIC_TATUM_API_KEY
+  );
+}
+
+async function getBrowserTatumClient(): Promise<EthereumClient> {
+  if (typeof window === "undefined") {
+    throw new Error("MetaMask operations are only available in the browser.");
+  }
+
+  if (!browserClientPromise) {
+    const apiKey = getPublicApiKey();
+    browserClientPromise = TatumSDK.init<Ethereum>({
+      network: Network.ETHEREUM_SEPOLIA,
+      version: ApiVersion.V4,
+      ...(apiKey ? { apiKey: { v4: apiKey } } : {}),
+    });
+  }
+
+  return browserClientPromise;
+}
 
 type InjectedProvider = {
   isMetaMask?: boolean;
@@ -26,66 +36,26 @@ type InjectedProvider = {
   providers?: InjectedProvider[];
 };
 
-/** Official MetaMask family reverse-DNS ids (MetaMask docs / EIP-6963 examples). */
-const METAMASK_RDNS = new Set([
-  "io.metamask",
-  "io.metamask.flask",
-  "io.metamask.mmi",
-]);
-
-/**
- * Discover MetaMask's EIP-1193 provider without using `window.ethereum`.
- * Works when Rabby, Phantom EVM, etc. are also installed.
- */
-function discoverMetaMaskViaEip6963(timeoutMs: number): Promise<InjectedProvider | null> {
-  return new Promise((resolve) => {
-    if (typeof window === "undefined") {
-      resolve(null);
-      return;
-    }
-
-    const candidates: InjectedProvider[] = [];
-
-    const onAnnounce = (event: Event) => {
-      const e = event as CustomEvent<EIP6963ProviderDetail>;
-      const detail = e.detail;
-      if (
-        detail?.provider?.request &&
-        detail.info?.rdns &&
-        METAMASK_RDNS.has(detail.info.rdns)
-      ) {
-        candidates.push(detail.provider);
-      }
-    };
-
-    window.addEventListener("eip6963:announceProvider", onAnnounce);
-    window.dispatchEvent(new Event("eip6963:requestProvider"));
-
-    window.setTimeout(() => {
-      window.removeEventListener("eip6963:announceProvider", onAnnounce);
-      resolve(candidates[0] ?? null);
-    }, timeoutMs);
-  });
-}
-
-/** Legacy fallback when a wallet does not implement EIP-6963 yet. */
-function getMetaMaskFromWindowEthereum(): InjectedProvider | null {
+function getMetaMaskProviderFromWindow(): InjectedProvider | null {
   if (typeof window === "undefined") return null;
-  const ethereum = (window as unknown as { ethereum?: InjectedProvider })
-    .ethereum;
+  const ethereum = (window as unknown as { ethereum?: InjectedProvider }).ethereum;
   if (!ethereum) return null;
   if (ethereum.isMetaMask) return ethereum;
   if (Array.isArray(ethereum.providers)) {
-    const mm = ethereum.providers.find((p) => p.isMetaMask);
-    if (mm) return mm;
+    const metaMaskProvider = ethereum.providers.find((p) => p.isMetaMask);
+    if (metaMaskProvider) return metaMaskProvider;
   }
   return null;
 }
 
-async function resolveMetaMaskProvider(): Promise<InjectedProvider | null> {
-  const from6963 = await discoverMetaMaskViaEip6963(600);
-  if (from6963?.request) return from6963;
-  return getMetaMaskFromWindowEthereum();
+async function ensureSepoliaNetwork(): Promise<void> {
+  const provider = getMetaMaskProviderFromWindow();
+  if (!provider?.request) return;
+
+  await provider.request({
+    method: "wallet_switchEthereumChain",
+    params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
+  });
 }
 
 function formatWalletRejection(error: unknown): string {
@@ -101,43 +71,18 @@ function formatWalletRejection(error: unknown): string {
   }
 }
 
-const SEPOLIA_CHAIN_ID_HEX = "0xaa36a7";
-
-function ethToWeiHex(ethAmount: string): string {
-  const [wholeRaw, fractionRaw = ""] = ethAmount.trim().split(".");
-  const whole = wholeRaw.length ? wholeRaw : "0";
-  const fraction = fractionRaw.slice(0, 18).padEnd(18, "0");
-  const wei =
-    BigInt(whole) * BigInt("1000000000000000000") + BigInt(fraction);
-  return `0x${wei.toString(16)}`;
-}
-
 /**
  * Connect MetaMask and return the selected account address.
  *
- * Prefers EIP-6963 discovery, then falls back to `window.ethereum` / `providers`.
+ * Uses Tatum SDK MetaMask wallet provider.
  */
 export async function connectMetaMaskWallet(): Promise<string> {
-  if (typeof window === "undefined") {
-    throw new Error("MetaMask connection is only available in the browser.");
-  }
-
-  const metaMask = await resolveMetaMaskProvider();
-  if (!metaMask?.request) {
-    throw new Error(
-      "MetaMask was not found. Install a current MetaMask build (with EIP-6963 support), or temporarily disable other wallet extensions."
-    );
-  }
-
   try {
-    const accounts = (await metaMask.request({
-      method: "eth_requestAccounts",
-    })) as unknown;
-
-    if (!Array.isArray(accounts) || typeof accounts[0] !== "string") {
-      throw new Error("MetaMask returned an unexpected response.");
-    }
-    return accounts[0];
+    await ensureSepoliaNetwork();
+    const tatum = await getBrowserTatumClient();
+    const address = await tatum.walletProvider.use(MetaMask).getWallet();
+    if (!address) throw new Error("MetaMask returned an empty wallet address.");
+    return address;
   } catch (error) {
     const details = formatWalletRejection(error);
     const o = error as { code?: number };
@@ -155,17 +100,6 @@ export async function connectMetaMaskWallet(): Promise<string> {
     ) {
       throw new Error(
         "MetaMask did not authorize this site. Open the MetaMask extension, unlock it, approve the connection, then try again."
-      );
-    }
-
-    if (
-      details.includes("Cannot set property ethereum") ||
-      details.includes("only a getter") ||
-      details.includes("Cannot redefine property: ethereum") ||
-      details.includes("another Ethereum wallet extension")
-    ) {
-      throw new Error(
-        "Wallet extension conflict on this page. Reload the tab after updating extensions, or use EIP-6963-capable MetaMask with other wallets still installed."
       );
     }
 
@@ -189,41 +123,12 @@ export async function sendEthWithMetaMask(
     throw new Error("Recipient address is required.");
   }
 
-  const metaMask = await resolveMetaMaskProvider();
-  if (!metaMask?.request) {
-    throw new Error("MetaMask provider not available.");
-  }
-
   try {
-    // Ensure user is connected (uses existing session if already approved).
-    const accounts = (await metaMask.request({
-      method: "eth_requestAccounts",
-    })) as unknown;
-    if (!Array.isArray(accounts) || typeof accounts[0] !== "string") {
-      throw new Error("MetaMask returned no connected account.");
-    }
-    const from = accounts[0];
-
-    // Force Sepolia so the tx is sent to requested network.
-    await metaMask.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
-    });
-
-    const txHash = (await metaMask.request({
-      method: "eth_sendTransaction",
-      params: [
-        {
-          from,
-          to: recipient,
-          value: ethToWeiHex(amountEth),
-        },
-      ],
-    })) as unknown;
-
-    if (typeof txHash !== "string") {
-      throw new Error("MetaMask returned an unexpected transaction response.");
-    }
+    await ensureSepoliaNetwork();
+    const tatum = await getBrowserTatumClient();
+    const walletProvider = tatum.walletProvider.use(MetaMask);
+    const from = await walletProvider.getWallet();
+    const txHash = await walletProvider.transferNative(recipient, amountEth);
 
     return {
       from,

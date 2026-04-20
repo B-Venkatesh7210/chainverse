@@ -239,7 +239,7 @@ export const useGameStore = create<GameStore>()(
       hydrateTutorialState: () => {
         if (typeof window === "undefined") return;
         const completedLegacy =
-          window.localStorage.getItem("chainverse.tutorial.completed") === "true";
+          window.localStorage.getItem("blockville.tutorial.completed") === "true";
         if (completedLegacy) {
           set({
             mode: "freeplay",
@@ -251,7 +251,7 @@ export const useGameStore = create<GameStore>()(
       },
     }),
     {
-      name: "chainverse.tutorial.state",
+      name: "blockville.tutorial.state",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         mode: state.mode,

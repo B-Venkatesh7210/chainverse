@@ -22,7 +22,7 @@ export function Modal({ open, title, children, onClose }: ModalProps) {
               </h3>
             )}
             <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-sky-500">
-              ChainVerse
+              BlockVille
             </p>
           </div>
           <button

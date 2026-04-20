@@ -203,27 +203,21 @@ console.log(account);
       "The lanes now look superfine.",
       "The shipments are ready to roll.",
     ],
-    codeSnippet: `import { EvmWalletProvider } from '@tatumio/evm-wallet-provider'
-import { TatumSDK, Network, Ethereum } from '@tatumio/tatum'
+    codeSnippet: `import { TatumSDK, Network, Ethereum, MetaMask, ApiVersion } from "@tatumio/tatum";
 
-const tatumSdk = await TatumSDK.init<Ethereum>({
+const tatum = await TatumSDK.init<Ethereum>({
   network: Network.ETHEREUM_SEPOLIA,
-  apiKey: process.env.NEXT_PUBLIC_TATUM_API_KEY_V4,
-  configureWalletProviders: [EvmWalletProvider],
-})
+  version: ApiVersion.V4,
+  apiKey: { v4: process.env.NEXT_PUBLIC_TATUM_API_KEY_V4! },
+});
 
-const payload = {
-  privateKey: process.env.NEXT_PUBLIC_YOUR_PRIVATE_KEY,
-  to: 'RECIPIENT_ADDRESS',
-  value: '0.01',
-  chain: 'ETH',
-}
+const wallet = tatum.walletProvider.use(MetaMask);
+const from = await wallet.getWallet();
+const to = "RECIPIENT_ADDRESS";
+const amount = "0.00001";
 
-const txHash = await tatumSdk.walletProvider
-  .use(EvmWalletProvider)
-  .signAndBroadcast(payload)
-
-console.log("Tx Hash:", txHash)`,
+const txHash = await wallet.transferNative(to, amount);
+console.log({ from, to, amount, txHash });`,
     action: async ({ log, setResult, input }) => {
       const recipient = input?.address?.trim();
       if (!recipient) {

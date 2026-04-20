@@ -30,7 +30,7 @@ export function GameEngine() {
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-4">
           <div className="w-full">
             <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-zinc-400">
-              <span>Fixing ChainVerse...</span>
+              <span>Fixing BlockVille...</span>
               <span>{progressPercent}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
@@ -44,11 +44,11 @@ export function GameEngine() {
           <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-sky-500/20 border border-sky-400/40 shadow-neon-blue flex items-center justify-center text-sky-300 text-xl font-black">
-              CV
+              BV
             </div>
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-zinc-400">
-                ChainVerse
+                BlockVille
               </p>
               <p className="text-xs text-zinc-500">
                 Interactive blockchain ops using Tatum
