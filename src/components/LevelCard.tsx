@@ -9,7 +9,6 @@ import { useGameStore, type WalletLevelResult } from "@/store/gameStore";
 
 type LevelCardProps = {
   level: Level;
-  levelLabel: string;
 };
 
 function formatActionError(error: unknown): string {
@@ -31,7 +30,7 @@ function formatActionError(error: unknown): string {
   }
 }
 
-export function LevelCard({ level, levelLabel }: LevelCardProps) {
+export function LevelCard({ level }: LevelCardProps) {
   const [open, setOpen] = React.useState(false);
   const [isRunning, setIsRunning] = React.useState(false);
   const [addressInput, setAddressInput] = React.useState("");
@@ -58,24 +57,26 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
   const isCompleted = completedLevels.includes(level.id);
 
   const walletResult =
-    level.id === 1 ? (levelResult as WalletLevelResult | undefined) : undefined;
+    level.kind === "wallet"
+      ? (levelResult as WalletLevelResult | undefined)
+      : undefined;
 
   const maskedPrivateKey = walletResult?.privateKey
     ? `${walletResult.privateKey.slice(0, 8)}...${walletResult.privateKey.slice(-6)}`
     : null;
   const balanceResult =
-    level.id === 2
+    level.kind === "balance"
       ? (levelResult as
           | { address: string; ethBalance: string; rawBalance: string }
           | undefined)
       : undefined;
   const connectWalletResult =
-    level.id === 3
+    level.kind === "connect"
       ? (levelResult as { address: string } | undefined)
       : undefined;
 
   const rpcResult =
-    level.id === 6
+    level.kind === "rpc"
       ? (levelResult as
           | {
               address: string;
@@ -86,7 +87,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           | undefined)
       : undefined;
   const subscriptionResult =
-    level.id === 5
+    level.kind === "subscribe"
       ? (levelResult as
           | {
               type: string;
@@ -104,23 +105,25 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
         log: addLog,
         setResult: (result) => setLevelResult(level.id, result),
         input:
-          level.id === 2 || level.id === 5 || level.id === 6
+          level.kind === "balance" ||
+          level.kind === "subscribe" ||
+          level.kind === "rpc"
             ? { address: addressInput, webhookUrl: webhookInput }
             : undefined,
       });
       markLevelCompleted(level.id);
-      if (level.id === 3) {
-        const r = useGameStore.getState().levelResults[3] as
+      if (level.kind === "connect") {
+        const r = useGameStore.getState().levelResults[level.id] as
           | { address?: string }
           | undefined;
         if (r?.address) setAddressInput(r.address);
       }
-      setSuccessMessage(`Level ${level.id} complete: ${level.title}`);
+      setSuccessMessage(`${level.title} complete`);
       setGuideMessage(
         `Great run. ${
-          level.id < 6
-            ? `Proceed to Level ${level.id + 1} to continue repairing ChainVerse.`
-            : "All levels cleared. ChainVerse systems are stabilizing."
+          completedLevels.length + 1 < 6
+            ? "Another chapter awaits."
+            : "All chapters cleared. ChainVerse systems are stabilizing."
         }`
       );
       if (soundEnabled && typeof window !== "undefined") {
@@ -143,7 +146,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
       }, 2500);
       setShouldScrollToResult(true);
     } catch (error) {
-      addLog(`Level ${level.id} failed: ${formatActionError(error)}`);
+      addLog(`${level.title} failed: ${formatActionError(error)}`);
     } finally {
       setIsRunning(false);
     }
@@ -186,7 +189,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-400">
-              {levelLabel}
+              {level.chapterName}
             </p>
             <p className="mt-1 text-sm text-zinc-200">{level.title}</p>
           </div>
@@ -211,10 +214,10 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title={`${levelLabel}: ${level.title}`}
+        title={level.title}
       >
         <p className="text-sm text-zinc-300">{level.description}</p>
-        {level.id === 3 && (
+        {level.kind === "connect" && (
           <p className="mt-2 text-xs text-amber-200/90">
             This level uses EIP-6963 to find MetaMask even if other wallets are
             installed. Unlock MetaMask and switch to Sepolia if prompted. Very old
@@ -227,7 +230,9 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
           </p>
           <CodeSnippet code={level.codeSnippet} language="typescript" />
         </div>
-        {(level.id === 2 || level.id === 5 || level.id === 6) && (
+        {(level.kind === "balance" ||
+          level.kind === "subscribe" ||
+          level.kind === "rpc") && (
           <div className="mt-4">
             <label
               htmlFor={`wallet-address-${level.id}`}
@@ -244,7 +249,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
             />
           </div>
         )}
-        {level.id === 5 && (
+        {level.kind === "subscribe" && (
           <div className="mt-3">
             <label
               htmlFor={`webhook-url-${level.id}`}
@@ -381,7 +386,7 @@ export function LevelCard({ level, levelLabel }: LevelCardProps) {
                 };
                 setMockWebhookEvent(event);
                 addLog(
-                  `Level 5 mock webhook fired: tx=${event.txId}, amount=${event.amountEth} ETH, status=${event.status}`
+                  `Mock webhook fired: tx=${event.txId}, amount=${event.amountEth} ETH, status=${event.status}`
                 );
               }}
               className="mt-3 inline-flex items-center justify-center rounded-md border border-amber-500/60 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"

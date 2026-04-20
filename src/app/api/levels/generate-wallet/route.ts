@@ -8,6 +8,7 @@ export async function POST() {
       address: wallet.address,
       privateKey: wallet.privateKey,
       mnemonic: wallet.mnemonic,
+      xpub: wallet.xpub,
     });
   } catch (error) {
     const message =

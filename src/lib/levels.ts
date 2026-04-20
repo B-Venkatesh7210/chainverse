@@ -1,3 +1,5 @@
+import { connectMetaMaskWallet } from "@/lib/metamaskWallet";
+
 export type LevelActionContext = {
   log: (message: string) => void;
   setResult: (result: unknown) => void;
@@ -6,26 +8,47 @@ export type LevelActionContext = {
 
 export type LevelAction = (context: LevelActionContext) => Promise<unknown>;
 
+export type LevelKind =
+  | "wallet"
+  | "balance"
+  | "connect"
+  | "send"
+  | "subscribe"
+  | "rpc";
+
 export type Level = {
-  id: number;
+  id: string;
+  kind: LevelKind;
   title: string;
+  chapterName: string;
   description: string;
+  introDialogues: string[];
+  outroDialogues: string[];
   codeSnippet: string;
   action: LevelAction;
 };
 
 const notImplementedAction = async ({ log }: LevelActionContext) => {
-  log("This level is not implemented yet.");
-  throw new Error("Level action is not implemented yet.");
+  log("This chapter action is not implemented yet.");
+  throw new Error("This chapter is not implemented yet.");
 };
-
-import { connectMetaMaskWallet } from "@/lib/metamaskWallet";
 
 export const levels: Level[] = [
   {
-    id: 1,
-    title: "Generate Wallet",
-    description: "Create a new Ethereum wallet for the player profile.",
+    id: "forge-spark",
+    kind: "wallet",
+    title: "Forge Spark",
+    chapterName: "The Missing Spark",
+    description: "Create a new Ethereum wallet for the Tatumian's hero profile.",
+    introDialogues: [
+      "Tatumian! The key forge in BlockVille is dark.",
+      "Without a wallet spark, no citizen can hold value.",
+      "Light the forge. Create our first wallet.",
+    ],
+    outroDialogues: [
+      "It glows! The forge is alive again!",
+      "One spark restored... five cracks remain.",
+    ],
     codeSnippet: `import { TatumSDK, Network, ApiVersion } from "@tatumio/tatum";
 import { EvmWalletProvider } from "@tatumio/evm-wallet-provider";
 
@@ -37,22 +60,14 @@ const tatum = await TatumSDK.init({
 });
 
 const walletProvider = tatum.walletProvider.use(EvmWalletProvider);
-
-// Step 1: generate mnemonic
 const mnemonic = walletProvider.generateMnemonic();
-
-// Step 2: derive xpub
 const xpubDetails = await walletProvider.generateXpub(mnemonic);
-
-// Step 3: derive address (index 0)
 const address = await walletProvider.generateAddressFromMnemonic(mnemonic, 0);
-
-// Step 4: derive private key (index 0)
 const privateKey = await walletProvider.generatePrivateKeyFromMnemonic(mnemonic, 0);
 
 console.log({ mnemonic, xpub: xpubDetails.xpub, address, privateKey });`,
     action: async ({ log, setResult }) => {
-      log("Level 1 started: generating wallet on Ethereum Sepolia...");
+      log("Forge Spark: generating wallet on Ethereum Sepolia...");
       const response = await fetch("/api/levels/generate-wallet", {
         method: "POST",
       });
@@ -71,14 +86,25 @@ console.log({ mnemonic, xpub: xpubDetails.xpub, address, privateKey });`,
         mnemonic: wallet.mnemonic,
       };
       setResult(result);
-      log(`Wallet generated: ${wallet.address}`);
+      log(`Forge Spark complete: ${wallet.address}`);
       return result;
     },
   },
   {
-    id: 2,
-    title: "Fetch Balance",
+    id: "treasury-whisper",
+    kind: "balance",
+    title: "Treasury Whisper",
+    chapterName: "The Silent Treasury",
     description: "Read the current balance of a selected wallet address.",
+    introDialogues: [
+      "Our treasury vault is sealed in silence.",
+      "No one knows what balance remains.",
+      "Ask the chain. Hear the vault whisper.",
+    ],
+    outroDialogues: [
+      "The vault answered! We can read our balance again.",
+      "Good. Resources mean hope.",
+    ],
     codeSnippet: `import { TatumSDK, Network, Ethereum, ApiVersion } from "@tatumio/tatum";
 import { EvmWalletProvider } from "@tatumio/evm-wallet-provider";
 
@@ -90,77 +116,85 @@ const tatum = await TatumSDK.init<Ethereum>({
 });
 
 const address = "YOUR_WALLET_ADDRESS";
-
-// Native balance via Tatum RPC (same path as this level's API route)
 const { result } = await tatum.rpc.getBalance(address);
-
 console.log({ address, rawBalance: result });`,
     action: async ({ log, setResult, input }) => {
       const address = input?.address?.trim();
-      if (!address) {
-        throw new Error("Wallet address is required.");
-      }
+      if (!address) throw new Error("Wallet address is required.");
 
-      log(`Level 2 request: fetching balance for ${address}`);
+      log(`Treasury Whisper: fetching balance for ${address}`);
       const response = await fetch("/api/levels/fetch-balance", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address }),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || "Failed to fetch balance.");
       }
-
       const result = (await response.json()) as {
         address: string;
         ethBalance: string;
         rawBalance: string;
       };
-
       setResult(result);
       log(
-        `Level 2 response: ${result.address} has ${result.ethBalance} ETH (raw: ${result.rawBalance})`
+        `Treasury Whisper complete: ${result.ethBalance} ETH for ${result.address}`
       );
-
       return result;
     },
   },
   {
-    id: 3,
-    title: "Connect Wallet (MetaMask)",
+    id: "gateway-oath",
+    kind: "connect",
+    title: "Gateway Oath",
+    chapterName: "The Traveler Gate",
     description:
-      "Uses EIP-6963 multi-wallet discovery when available, then falls back to window.ethereum.providers. Same chain: Sepolia.",
-    codeSnippet: `// Production fix for multiple wallets: EIP-6963 (see https://eips.ethereum.org/EIPS/eip-6963)
+      "Connect MetaMask in the browser and read the active account address.",
+    introDialogues: [
+      "A steel gate blocks our road, Tatumian.",
+      "It opens only for travelers who bind a wallet oath.",
+      "Connect your wallet and claim your name.",
+    ],
+    outroDialogues: [
+      "The gate bowed to your signature.",
+      "You are now recognized by BlockVille.",
+    ],
+    codeSnippet: `import { TatumSDK, Network, Ethereum, MetaMask, ApiVersion } from "@tatumio/tatum";
 
-window.addEventListener("eip6963:announceProvider", (event) => {
-  const { info, provider } = (event as CustomEvent).detail;
-  if (info.rdns === "io.metamask") {
-    // use \`provider\` — not window.ethereum
-  }
+const tatum = await TatumSDK.init<Ethereum>({
+  network: Network.ETHEREUM_SEPOLIA,
+  version: ApiVersion.V4,
+  apiKey: process.env.NEXT_PUBLIC_TATUM_API_KEY_V4
 });
-window.dispatchEvent(new Event("eip6963:requestProvider"));
 
-// Then: await provider.request({ method: "eth_requestAccounts" })
-
-// Tatum: getWallet() uses window.ethereum — fine only when MM owns that global.
-// await tatum.walletProvider.use(MetaMask).getWallet()`,
+const account = await tatum.walletProvider.use(MetaMask).getWallet();
+console.log(account);
+`,
     action: async ({ log, setResult }) => {
-      log("Level 3: requesting MetaMask connection…");
+      log("Gateway Oath: requesting MetaMask connection...");
       const address = await connectMetaMaskWallet();
       const result = { address };
       setResult(result);
-      log(`Level 3: connected wallet ${address}`);
+      log(`Gateway Oath complete: connected ${address}`);
       return result;
     },
   },
   {
-    id: 4,
-    title: "Send Transaction",
+    id: "courier-flame",
+    kind: "send",
+    title: "Courier Flame",
+    chapterName: "The Burned Courier",
     description: "Broadcast a signed value transfer on Ethereum Sepolia.",
+    introDialogues: [
+      "Our courier lines are broken by fire.",
+      "Soon we must send value across the valley again.",
+      "For now, study the transmission spell.",
+    ],
+    outroDialogues: [
+      "You've learned the courier spell.",
+      "When you're ready, we can ignite real transfers.",
+    ],
     codeSnippet: `import { sendTransaction } from "@/lib/tatum";
 
 const txHash = await sendTransaction({
@@ -172,9 +206,20 @@ console.log(txHash);`,
     action: notImplementedAction,
   },
   {
-    id: 5,
-    title: "Enable Notifications",
-    description: "Subscribe to address activity using a webhook endpoint.",
+    id: "watchtower-bell",
+    kind: "subscribe",
+    title: "Watchtower Bell",
+    chapterName: "The Sleeping Bell",
+    description: "Subscribe to address activity with a webhook endpoint.",
+    introDialogues: [
+      "The watchtower bell sleeps. No alerts, no warning.",
+      "We must hear every transaction passing our walls.",
+      "Wake the bell with a subscription.",
+    ],
+    outroDialogues: [
+      "The bell rings again! We'll know when tx storms hit.",
+      "Excellent. One last mystery waits.",
+    ],
     codeSnippet: `const response = await fetch("/api/levels/create-subscription", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -188,49 +233,47 @@ console.log(result.type); // ADDRESS_TRANSACTION`,
     action: async ({ log, setResult, input }) => {
       const address = input?.address?.trim();
       const webhookUrl = input?.webhookUrl?.trim();
-
-      if (!address) {
-        throw new Error("Wallet address is required.");
-      }
-      if (!webhookUrl) {
-        throw new Error("Webhook URL is required.");
-      }
+      if (!address) throw new Error("Wallet address is required.");
+      if (!webhookUrl) throw new Error("Webhook URL is required.");
 
       log(
-        `Level 5 request: creating ADDRESS_TRANSACTION subscription for ${address} -> ${webhookUrl}`
+        `Watchtower Bell: creating ADDRESS_TRANSACTION subscription for ${address}`
       );
-
       const response = await fetch("/api/levels/create-subscription", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address, webhookUrl }),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || "Failed to create subscription.");
       }
-
       const result = (await response.json()) as {
         type: string;
         address: string;
         webhookUrl: string;
         subscription: unknown;
       };
-
       setResult(result);
-      log(
-        `Level 5 response: subscription created (${result.type}) for ${result.address}`
-      );
+      log(`Watchtower Bell complete: subscription for ${result.address}`);
       return result;
     },
   },
   {
-    id: 6,
-    title: "Fetch Block Data (RPC)",
-    description: "Query chain state directly through the Tatum RPC client.",
+    id: "oracle-rift",
+    kind: "rpc",
+    title: "Oracle Rift",
+    chapterName: "The Rift of Numbers",
+    description: "Query chain state directly with Tatum RPC calls.",
+    introDialogues: [
+      "The oracle rift is unstable — data bends and cracks.",
+      "We need raw chain truth to seal it.",
+      "Call block number and balance directly through RPC.",
+    ],
+    outroDialogues: [
+      "The rift calmed. Raw truth holds the village steady.",
+      "BlockVille stands. You are truly Tatumian now.",
+    ],
     codeSnippet: `const response = await fetch("/api/levels/fetch-rpc-data", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -241,19 +284,14 @@ console.log(result.rawBlockNumberJsonRpc);
 console.log(result.rpc.rawJsonRpc);`,
     action: async ({ log, setResult, input }) => {
       const address = input?.address?.trim();
-      if (!address) {
-        throw new Error("Wallet address is required.");
-      }
+      if (!address) throw new Error("Wallet address is required.");
 
-      log(`Level 6 request: RPC blockNumber + getBalance for ${address}`);
+      log(`Oracle Rift: RPC blockNumber + getBalance for ${address}`);
       const response = await fetch("/api/levels/fetch-rpc-data", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address }),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || "Failed to fetch RPC data.");
@@ -265,19 +303,17 @@ console.log(result.rpc.rawJsonRpc);`,
         dataApi: { ethBalance: string | null };
         rawBlockNumberJsonRpc: unknown;
       };
-
       setResult(result);
-      log(`Level 6 response: blockNumber=${result.blockNumber}`);
-      log(`Level 6 raw JSON-RPC blockNumber: ${JSON.stringify(result.rawBlockNumberJsonRpc)}`);
-      log(`Level 6 raw JSON-RPC getBalance: ${JSON.stringify(result.rpc.rawJsonRpc)}`);
+      log(`Oracle Rift complete: blockNumber=${result.blockNumber}`);
+      log(`Oracle Rift raw blockNumber: ${JSON.stringify(result.rawBlockNumberJsonRpc)}`);
+      log(`Oracle Rift raw getBalance: ${JSON.stringify(result.rpc.rawJsonRpc)}`);
       if (result.dataApi.ethBalance === null) {
-        log("Level 6 compare: TODO - Data API balance field mapping pending docs confirmation.");
+        log("Oracle Rift compare: TODO - Data API mapping pending docs confirmation.");
       } else {
         log(
-          `Level 6 compare: Data API=${result.dataApi.ethBalance} ETH vs RPC=${result.rpc.ethBalance} ETH`
+          `Oracle Rift compare: Data API=${result.dataApi.ethBalance} ETH vs RPC=${result.rpc.ethBalance} ETH`
         );
       }
-
       return result;
     },
   },
