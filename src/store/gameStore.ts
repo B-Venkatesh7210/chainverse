@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { levels } from "@/lib/levels";
+import { levels, tutorialPrologueDialogues } from "@/lib/levels";
 
 export type WalletLevelResult = {
   address: string;
@@ -11,7 +11,7 @@ export type WalletLevelResult = {
   xpub?: string;
 };
 
-export type TutorialPhase = "intro" | "challenge" | "outro";
+export type TutorialPhase = "prologue" | "intro" | "challenge" | "outro";
 
 type GameStore = {
   logs: string[];
@@ -24,6 +24,7 @@ type GameStore = {
   tutorialSkipped: boolean;
   tutorialLevelIdx: number;
   tutorialDialogueIdx: number;
+  prologueDialogueIdx: number;
   tutorialPhase: TutorialPhase;
   typewriterKey: number;
   addLog: (message: string) => void;
@@ -35,6 +36,7 @@ type GameStore = {
   skipTutorial: () => void;
   resetTutorial: () => void;
   nextTutorialDialogue: () => void;
+  prevTutorialStep: () => void;
   continueTutorialWithoutTest: () => void;
   completeTutorialChallenge: () => void;
   hydrateTutorialState: () => void;
@@ -53,7 +55,8 @@ export const useGameStore = create<GameStore>()(
       tutorialSkipped: false,
       tutorialLevelIdx: 0,
       tutorialDialogueIdx: 0,
-      tutorialPhase: "intro",
+      prologueDialogueIdx: 0,
+      tutorialPhase: "prologue",
       typewriterKey: 0,
       addLog: (message) =>
         set((state) => ({
@@ -81,6 +84,7 @@ export const useGameStore = create<GameStore>()(
           tutorialSkipped: true,
           tutorialLevelIdx: 0,
           tutorialDialogueIdx: 0,
+          prologueDialogueIdx: 0,
           tutorialPhase: "intro",
           guideMessage: "Villager: Training skipped. Freeplay unlocked.",
         }),
@@ -90,12 +94,27 @@ export const useGameStore = create<GameStore>()(
           tutorialSkipped: false,
           tutorialLevelIdx: 0,
           tutorialDialogueIdx: 0,
-          tutorialPhase: "intro",
+          prologueDialogueIdx: 0,
+          tutorialPhase: "prologue",
           typewriterKey: 0,
           guideMessage: "Villager: A fresh run? Brave. Let us begin again.",
         }),
       nextTutorialDialogue: () =>
         set((state) => {
+          if (state.tutorialPhase === "prologue") {
+            if (state.prologueDialogueIdx < tutorialPrologueDialogues.length - 1) {
+              return {
+                prologueDialogueIdx: state.prologueDialogueIdx + 1,
+                typewriterKey: state.typewriterKey + 1,
+              };
+            }
+            return {
+              tutorialPhase: "intro",
+              tutorialDialogueIdx: 0,
+              typewriterKey: state.typewriterKey + 1,
+            };
+          }
+
           const level = levels[state.tutorialLevelIdx];
           if (!level) return state;
           const lines =
@@ -128,6 +147,7 @@ export const useGameStore = create<GameStore>()(
               mode: "freeplay",
               tutorialLevelIdx: 0,
               tutorialDialogueIdx: 0,
+              prologueDialogueIdx: 0,
               tutorialPhase: "intro",
               typewriterKey: state.typewriterKey + 1,
               guideMessage:
@@ -137,7 +157,69 @@ export const useGameStore = create<GameStore>()(
           return {
             tutorialLevelIdx: nextIdx,
             tutorialDialogueIdx: 0,
+            prologueDialogueIdx: state.prologueDialogueIdx,
             tutorialPhase: "intro",
+            typewriterKey: state.typewriterKey + 1,
+          };
+        }),
+      prevTutorialStep: () =>
+        set((state) => {
+          if (state.tutorialPhase === "prologue") {
+            if (state.prologueDialogueIdx === 0) return state;
+            return {
+              prologueDialogueIdx: state.prologueDialogueIdx - 1,
+              typewriterKey: state.typewriterKey + 1,
+            };
+          }
+
+          const currentLevel = levels[state.tutorialLevelIdx];
+          if (!currentLevel) return state;
+
+          if (state.tutorialPhase === "intro") {
+            if (state.tutorialDialogueIdx > 0) {
+              return {
+                tutorialDialogueIdx: state.tutorialDialogueIdx - 1,
+                typewriterKey: state.typewriterKey + 1,
+              };
+            }
+
+            if (state.tutorialLevelIdx === 0) {
+              return {
+                tutorialPhase: "prologue",
+                prologueDialogueIdx: Math.max(tutorialPrologueDialogues.length - 1, 0),
+                typewriterKey: state.typewriterKey + 1,
+              };
+            }
+
+            const prevLevelIdx = state.tutorialLevelIdx - 1;
+            const prevLevel = levels[prevLevelIdx];
+            return {
+              tutorialLevelIdx: prevLevelIdx,
+              tutorialPhase: "outro",
+              tutorialDialogueIdx: Math.max(prevLevel.outroDialogues.length - 1, 0),
+              typewriterKey: state.typewriterKey + 1,
+            };
+          }
+
+          if (state.tutorialPhase === "challenge") {
+            return {
+              tutorialPhase: "intro",
+              tutorialDialogueIdx: Math.max(currentLevel.introDialogues.length - 1, 0),
+              typewriterKey: state.typewriterKey + 1,
+            };
+          }
+
+          // outro
+          if (state.tutorialDialogueIdx > 0) {
+            return {
+              tutorialDialogueIdx: state.tutorialDialogueIdx - 1,
+              typewriterKey: state.typewriterKey + 1,
+            };
+          }
+
+          return {
+            tutorialPhase: "challenge",
+            tutorialDialogueIdx: 0,
             typewriterKey: state.typewriterKey + 1,
           };
         }),
@@ -176,6 +258,7 @@ export const useGameStore = create<GameStore>()(
         tutorialSkipped: state.tutorialSkipped,
         tutorialLevelIdx: state.tutorialLevelIdx,
         tutorialDialogueIdx: state.tutorialDialogueIdx,
+        prologueDialogueIdx: state.prologueDialogueIdx,
         tutorialPhase: state.tutorialPhase,
         completedLevels: state.completedLevels,
         soundEnabled: state.soundEnabled,

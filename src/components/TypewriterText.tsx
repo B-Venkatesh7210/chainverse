@@ -29,6 +29,29 @@ export function TypewriterText({
     return () => window.clearInterval(timer);
   }, [text, speedMs, playKey]);
 
-  return <span>{visible}</span>;
+  const shouldLinkTatumInThisLine =
+    text === "You can. With Tatum tools, chapter by chapter, we rebuild what was lost.";
+
+  const parts = shouldLinkTatumInThisLine ? visible.split(/(Tatum)/g) : [visible];
+
+  return (
+    <span>
+      {parts.map((part, index) =>
+        part === "Tatum" && shouldLinkTatumInThisLine ? (
+          <a
+            key={`tatum-${index}`}
+            href="https://docs.tatum.io/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sky-300 underline decoration-sky-400/60 underline-offset-2 hover:text-sky-200"
+          >
+            {part}
+          </a>
+        ) : (
+          <React.Fragment key={`text-${index}`}>{part}</React.Fragment>
+        )
+      )}
+    </span>
+  );
 }
 

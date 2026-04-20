@@ -4,7 +4,7 @@ import React from "react";
 import { CodeSnippet } from "./CodeSnippet";
 import { TypewriterText } from "./TypewriterText";
 import { ConsolePanel } from "./ConsolePanel";
-import type { Level } from "@/lib/levels";
+import { tutorialPrologueDialogues, type Level } from "@/lib/levels";
 import { useGameStore, type WalletLevelResult } from "@/store/gameStore";
 
 type TutorialPanelProps = {
@@ -21,6 +21,8 @@ function formatActionError(error: unknown): string {
 }
 
 export function TutorialPanel({ level }: TutorialPanelProps) {
+  const TREASURY_DEFAULT_ADDRESS =
+    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
   const [isRunning, setIsRunning] = React.useState(false);
   const [challengeResolved, setChallengeResolved] = React.useState(false);
   const [revealPrivateKey, setRevealPrivateKey] = React.useState(false);
@@ -31,8 +33,11 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
 
   const phase = useGameStore((state) => state.tutorialPhase);
   const dialogueIdx = useGameStore((state) => state.tutorialDialogueIdx);
+  const prologueDialogueIdx = useGameStore((state) => state.prologueDialogueIdx);
+  const tutorialLevelIdx = useGameStore((state) => state.tutorialLevelIdx);
   const typewriterKey = useGameStore((state) => state.typewriterKey);
   const nextTutorialDialogue = useGameStore((state) => state.nextTutorialDialogue);
+  const prevTutorialStep = useGameStore((state) => state.prevTutorialStep);
   const continueTutorialWithoutTest = useGameStore(
     (state) => state.continueTutorialWithoutTest
   );
@@ -47,12 +52,25 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   const levelResult = useGameStore((state) => state.levelResults[level.id]);
 
   const lines =
-    phase === "intro"
+    phase === "prologue"
+      ? tutorialPrologueDialogues
+      : phase === "intro"
       ? level.introDialogues
       : phase === "outro"
         ? level.outroDialogues
         : [];
-  const currentLine = lines[dialogueIdx] ?? "";
+  const currentLine =
+    phase === "prologue"
+      ? lines[prologueDialogueIdx] ?? ""
+      : lines[dialogueIdx] ?? "";
+  const canGoBack =
+    phase === "prologue"
+      ? prologueDialogueIdx > 0
+      : phase === "intro"
+        ? tutorialLevelIdx > 0 || dialogueIdx > 0
+        : phase === "challenge"
+          ? true
+          : dialogueIdx > 0 || phase === "outro";
 
   const walletResult =
     level.kind === "wallet"
@@ -67,6 +85,17 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   const connectResult =
     level.kind === "connect"
       ? (levelResult as { address: string } | undefined)
+      : undefined;
+  const sendResult =
+    level.kind === "send"
+      ? (levelResult as
+          | {
+              from: string;
+              to: string;
+              amountEth: string;
+              txHash: string;
+            }
+          | undefined)
       : undefined;
   const subscriptionResult =
     level.kind === "subscribe"
@@ -86,6 +115,9 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   React.useEffect(() => {
     setChallengeResolved(false);
     setRevealPrivateKey(false);
+    if (level.id === "treasury-whisper") {
+      setAddressInput(TREASURY_DEFAULT_ADDRESS);
+    }
   }, [level.id, phase]);
 
   const handleTest = async () => {
@@ -96,6 +128,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         setResult: (r) => setLevelResult(level.id, r),
         input:
           level.kind === "balance" ||
+          level.kind === "send" ||
           level.kind === "subscribe" ||
           level.kind === "rpc"
             ? { address: addressInput, webhookUrl: webhookInput }
@@ -122,10 +155,16 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
     <section className="flex min-h-[64vh] flex-1 flex-col rounded-2xl border border-sky-900/70 bg-slate-950/90 p-4 shadow-neon-blue">
       <div className="mb-3">
         <p className="text-[11px] uppercase tracking-[0.18em] text-sky-400">
-          {level.chapterName}
+          {phase === "prologue" ? "BlockVille Prologue" : level.chapterName}
         </p>
-        <h2 className="text-lg font-semibold text-zinc-100">{level.title}</h2>
-        <p className="text-sm text-zinc-400">{level.description}</p>
+        <h2 className="text-lg font-semibold text-zinc-100">
+          {phase === "prologue" ? "Arrival of the Tatumian" : level.title}
+        </h2>
+        <p className="text-sm text-zinc-400">
+          {phase === "prologue"
+            ? "Hear what happened to BlockVille before the first chapter begins."
+            : level.description}
+        </p>
       </div>
 
       <div className="mb-4 flex items-start justify-end gap-3">
@@ -144,11 +183,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
             <CodeSnippet code={level.codeSnippet} language="typescript" />
 
             {(level.kind === "balance" ||
+              level.kind === "send" ||
               level.kind === "subscribe" ||
               level.kind === "rpc") && (
               <div>
                 <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500">
-                  Wallet Address
+                  {level.kind === "send"
+                    ? "Recipient Address"
+                    : "Wallet Address"}
                 </label>
                 <input
                   value={addressInput}
@@ -173,6 +215,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
             )}
 
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={prevTutorialStep}
+                disabled={!canGoBack}
+                className="rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-300 disabled:opacity-40"
+              >
+                Back
+              </button>
               <button
                 type="button"
                 onClick={() => void handleTest()}
@@ -238,6 +288,27 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
               )}
               {balanceResult && <p>ETH Balance: {balanceResult.ethBalance}</p>}
               {connectResult && <p>Connected: {connectResult.address}</p>}
+              {sendResult && (
+                <div className="rounded-lg border border-sky-700/50 bg-sky-900/10 p-3 space-y-1">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-sky-300">
+                    Transaction Result
+                  </p>
+                  <p className="break-all">
+                    <span className="text-zinc-500">From:</span> {sendResult.from}
+                  </p>
+                  <p className="break-all">
+                    <span className="text-zinc-500">To:</span> {sendResult.to}
+                  </p>
+                  <p>
+                    <span className="text-zinc-500">Amount:</span>{" "}
+                    {sendResult.amountEth} ETH
+                  </p>
+                  <p className="break-all">
+                    <span className="text-zinc-500">Tx Hash:</span>{" "}
+                    {sendResult.txHash}
+                  </p>
+                </div>
+              )}
               {subscriptionResult && (
                 <p>
                   Subscription: {subscriptionResult.type} for{" "}
@@ -273,6 +344,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
             </div>
           </div>
           <div className="pt-4">
+            <button
+              type="button"
+              onClick={prevTutorialStep}
+              disabled={!canGoBack}
+              className="mr-2 rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-300 disabled:opacity-40"
+            >
+              Back
+            </button>
             <button
               type="button"
               onClick={nextTutorialDialogue}

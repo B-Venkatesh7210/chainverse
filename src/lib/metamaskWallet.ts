@@ -22,7 +22,7 @@ type EIP6963ProviderDetail = {
 
 type InjectedProvider = {
   isMetaMask?: boolean;
-  request?: (args: { method: string }) => Promise<unknown>;
+  request?: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
   providers?: InjectedProvider[];
 };
 
@@ -101,6 +101,17 @@ function formatWalletRejection(error: unknown): string {
   }
 }
 
+const SEPOLIA_CHAIN_ID_HEX = "0xaa36a7";
+
+function ethToWeiHex(ethAmount: string): string {
+  const [wholeRaw, fractionRaw = ""] = ethAmount.trim().split(".");
+  const whole = wholeRaw.length ? wholeRaw : "0";
+  const fraction = fractionRaw.slice(0, 18).padEnd(18, "0");
+  const wei =
+    BigInt(whole) * BigInt("1000000000000000000") + BigInt(fraction);
+  return `0x${wei.toString(16)}`;
+}
+
 /**
  * Connect MetaMask and return the selected account address.
  *
@@ -159,5 +170,82 @@ export async function connectMetaMaskWallet(): Promise<string> {
     }
 
     throw new Error(`MetaMask: ${details}`);
+  }
+}
+
+export type MetaMaskSendResult = {
+  from: string;
+  to: string;
+  amountEth: string;
+  txHash: string;
+};
+
+export async function sendEthWithMetaMask(
+  to: string,
+  amountEth: string
+): Promise<MetaMaskSendResult> {
+  const recipient = to.trim();
+  if (!recipient) {
+    throw new Error("Recipient address is required.");
+  }
+
+  const metaMask = await resolveMetaMaskProvider();
+  if (!metaMask?.request) {
+    throw new Error("MetaMask provider not available.");
+  }
+
+  try {
+    // Ensure user is connected (uses existing session if already approved).
+    const accounts = (await metaMask.request({
+      method: "eth_requestAccounts",
+    })) as unknown;
+    if (!Array.isArray(accounts) || typeof accounts[0] !== "string") {
+      throw new Error("MetaMask returned no connected account.");
+    }
+    const from = accounts[0];
+
+    // Force Sepolia so the tx is sent to requested network.
+    await metaMask.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
+    });
+
+    const txHash = (await metaMask.request({
+      method: "eth_sendTransaction",
+      params: [
+        {
+          from,
+          to: recipient,
+          value: ethToWeiHex(amountEth),
+        },
+      ],
+    })) as unknown;
+
+    if (typeof txHash !== "string") {
+      throw new Error("MetaMask returned an unexpected transaction response.");
+    }
+
+    return {
+      from,
+      to: recipient,
+      amountEth,
+      txHash,
+    };
+  } catch (error) {
+    const details = formatWalletRejection(error);
+    const code = (error as { code?: number })?.code;
+
+    if (code === 4001) {
+      throw new Error(
+        "MetaMask request rejected. Approve account access and transaction signing."
+      );
+    }
+    if (code === 4902) {
+      throw new Error(
+        "Sepolia network is not available in MetaMask. Add Sepolia and retry."
+      );
+    }
+
+    throw new Error(`MetaMask send failed: ${details}`);
   }
 }
