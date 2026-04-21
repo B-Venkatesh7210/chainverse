@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { CodeSnippet } from "./CodeSnippet";
 import { TypewriterText } from "./TypewriterText";
 import { ConsolePanel } from "./ConsolePanel";
@@ -11,12 +12,80 @@ type TutorialPanelProps = {
   level: Level;
 };
 
+type VillagerEmotion = "happy" | "idea" | "thinking" | "victory" | "worried";
+
 function formatActionError(error: unknown): string {
   if (error instanceof Error) return error.message;
   try {
     return JSON.stringify(error);
   } catch {
     return String(error);
+  }
+}
+
+function getVillagerEmotion(line: string, phase: string): VillagerEmotion {
+  const text = line.toLowerCase();
+
+  if (
+    text.includes("great") ||
+    text.includes("success") ||
+    text.includes("cheers") ||
+    text.includes("excellent") ||
+    text.includes("ready") ||
+    text.includes("complete")
+  ) {
+    return "victory";
+  }
+
+  if (
+    text.includes("let's") ||
+    text.includes("show") ||
+    text.includes("instruct") ||
+    text.includes("with tatum") ||
+    text.includes("restore")
+  ) {
+    return "idea";
+  }
+
+  if (
+    text.includes("know") ||
+    text.includes("ask") ||
+    text.includes("hear") ||
+    text.includes("query") ||
+    text.includes("truth")
+  ) {
+    return "thinking";
+  }
+
+  if (
+    text.includes("broken") ||
+    text.includes("destroyed") ||
+    text.includes("difficult") ||
+    text.includes("lost") ||
+    text.includes("desync") ||
+    text.includes("silent") ||
+    text.includes("warning") ||
+    text.includes("fractured")
+  ) {
+    return "worried";
+  }
+
+  return phase === "outro" ? "victory" : "happy";
+}
+
+function getVillagerScaleClass(emotion: VillagerEmotion): string {
+  switch (emotion) {
+    case "idea":
+      return "scale-[1.02] origin-bottom";
+    case "victory":
+      return "scale-[1.04] origin-bottom";
+    case "thinking":
+      return "scale-[1.12] origin-bottom";
+    case "worried":
+      return "scale-[1.14] origin-bottom";
+    case "happy":
+    default:
+      return "scale-[1.16] origin-bottom";
   }
 }
 
@@ -63,6 +132,9 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
     phase === "prologue"
       ? lines[prologueDialogueIdx] ?? ""
       : lines[dialogueIdx] ?? "";
+  const villagerEmotion = getVillagerEmotion(currentLine, phase);
+  const villagerImageSrc = `/images/${villagerEmotion}.png`;
+  const villagerScaleClass = getVillagerScaleClass(villagerEmotion);
   const canGoBack =
     phase === "prologue"
       ? prologueDialogueIdx > 0
@@ -339,15 +411,22 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         </div>
       ) : (
         <div className="flex flex-1 flex-col justify-between">
-          <div className="flex items-start gap-3">
-            <div className="h-11 w-11 rounded-full border border-indigo-300/45 bg-indigo-500/20 flex items-center justify-center text-lg">
-              🧑‍🌾
+          <div className="grid items-start gap-4 md:grid-cols-[236px_minmax(0,1fr)]">
+            <div className="relative h-[420px] overflow-hidden">
+              <Image
+                src={villagerImageSrc}
+                alt={`Villager ${villagerEmotion}`}
+                fill
+                className={`object-contain object-bottom ${villagerScaleClass}`}
+                sizes="236px"
+                priority
+              />
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-indigo-200">
                 Villager of BlockVille
               </p>
-              <div className="mt-2 rounded-xl border border-indigo-300/25 bg-indigo-500/10 px-3 py-2 text-sm text-indigo-50 min-h-[52px]">
+              <div className="mt-2 rounded-2xl border border-indigo-300/25 bg-gradient-to-br from-indigo-500/20 to-blue-500/10 px-4 py-3 text-sm text-indigo-50 min-h-[72px] shadow-[0_12px_34px_rgba(37,99,235,0.2)]">
                 <TypewriterText text={currentLine} playKey={typewriterKey} />
               </div>
             </div>
