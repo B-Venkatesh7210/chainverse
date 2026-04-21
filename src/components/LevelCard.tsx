@@ -52,7 +52,6 @@ export function LevelCard({ level }: LevelCardProps) {
   const completedLevels = useGameStore((state) => state.completedLevels);
   const setSuccessMessage = useGameStore((state) => state.setSuccessMessage);
   const setGuideMessage = useGameStore((state) => state.setGuideMessage);
-  const soundEnabled = useGameStore((state) => state.soundEnabled);
   const levelResult = useGameStore((state) => state.levelResults[level.id]);
   const isCompleted = completedLevels.includes(level.id);
 
@@ -126,21 +125,6 @@ export function LevelCard({ level }: LevelCardProps) {
             : "All chapters cleared. BlockVille systems are stabilizing."
         }`
       );
-      if (soundEnabled && typeof window !== "undefined") {
-        const context = new window.AudioContext();
-        const oscillator = context.createOscillator();
-        const gainNode = context.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(context.destination);
-        oscillator.type = "triangle";
-        oscillator.frequency.setValueAtTime(660, context.currentTime);
-        oscillator.frequency.setValueAtTime(880, context.currentTime + 0.1);
-        gainNode.gain.setValueAtTime(0.001, context.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.22);
-        oscillator.start();
-        oscillator.stop(context.currentTime + 0.24);
-      }
       window.setTimeout(() => {
         setSuccessMessage(null);
       }, 2500);

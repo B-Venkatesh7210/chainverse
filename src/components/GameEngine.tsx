@@ -10,8 +10,6 @@ import { TutorialPanel } from "./TutorialPanel";
 export function GameEngine() {
   const completedLevels = useGameStore((state) => state.completedLevels);
   const successMessage = useGameStore((state) => state.successMessage);
-  const soundEnabled = useGameStore((state) => state.soundEnabled);
-  const toggleSound = useGameStore((state) => state.toggleSound);
   const mode = useGameStore((state) => state.mode);
   const tutorialLevelIdx = useGameStore((state) => state.tutorialLevelIdx);
   const hydrateTutorialState = useGameStore((state) => state.hydrateTutorialState);
@@ -64,13 +62,6 @@ export function GameEngine() {
           <div className="flex items-center gap-3 text-xs text-indigo-100/55">
             <span className="h-2 w-2 rounded-full bg-[#2D7CFF] shadow-[0_0_12px_rgba(45,124,255,0.8)]" />
             <span>Network: Ethereum Sepolia</span>
-            <button
-              type="button"
-              onClick={toggleSound}
-              className="rounded-md border border-indigo-300/30 bg-indigo-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-indigo-100/80 transition hover:border-indigo-300/60 hover:text-indigo-50"
-            >
-              Sound {soundEnabled ? "On" : "Off"}
-            </button>
           </div>
           </div>
         </div>

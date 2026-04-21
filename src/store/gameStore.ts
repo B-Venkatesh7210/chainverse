@@ -19,7 +19,6 @@ type GameStore = {
   completedLevels: string[];
   successMessage: string | null;
   guideMessage: string;
-  soundEnabled: boolean;
   mode: "tutorial" | "freeplay";
   tutorialSkipped: boolean;
   tutorialLevelIdx: number;
@@ -32,7 +31,6 @@ type GameStore = {
   markLevelCompleted: (levelId: string) => void;
   setSuccessMessage: (message: string | null) => void;
   setGuideMessage: (message: string) => void;
-  toggleSound: () => void;
   skipTutorial: () => void;
   resetTutorial: () => void;
   nextTutorialDialogue: () => void;
@@ -50,7 +48,6 @@ export const useGameStore = create<GameStore>()(
       completedLevels: [],
       successMessage: null,
       guideMessage: "Villager: Welcome, Tatumian. BlockVille needs you.",
-      soundEnabled: false,
       mode: "tutorial",
       tutorialSkipped: false,
       tutorialLevelIdx: 0,
@@ -77,7 +74,6 @@ export const useGameStore = create<GameStore>()(
         })),
       setSuccessMessage: (message) => set({ successMessage: message }),
       setGuideMessage: (message) => set({ guideMessage: message }),
-      toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
       skipTutorial: () =>
         set({
           mode: "freeplay",
@@ -261,7 +257,6 @@ export const useGameStore = create<GameStore>()(
         prologueDialogueIdx: state.prologueDialogueIdx,
         tutorialPhase: state.tutorialPhase,
         completedLevels: state.completedLevels,
-        soundEnabled: state.soundEnabled,
         guideMessage: state.guideMessage,
       }),
     }
