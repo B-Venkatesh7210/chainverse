@@ -5,14 +5,17 @@ import Image from "next/image";
 import { CodeSnippet } from "./CodeSnippet";
 import { TypewriterText } from "./TypewriterText";
 import { ConsolePanel } from "./ConsolePanel";
-import { tutorialPrologueDialogues, type Level } from "@/lib/levels";
+import {
+  tutorialPrologueDialogues,
+  type DialogueLine,
+  type Level,
+  type VillagerEmotion,
+} from "@/lib/levels";
 import { useGameStore, type WalletLevelResult } from "@/store/gameStore";
 
 type TutorialPanelProps = {
   level: Level;
 };
-
-type VillagerEmotion = "happy" | "idea" | "thinking" | "victory" | "worried";
 
 function formatActionError(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -73,16 +76,27 @@ function getVillagerEmotion(line: string, phase: string): VillagerEmotion {
   return phase === "outro" ? "victory" : "happy";
 }
 
+function toDialogueLine(
+  line: string | DialogueLine | undefined,
+  phase: string
+): DialogueLine {
+  if (!line) return { text: "", emotion: phase === "outro" ? "victory" : "happy" };
+  if (typeof line === "string") {
+    return { text: line, emotion: getVillagerEmotion(line, phase) };
+  }
+  return line;
+}
+
 function getVillagerScaleClass(emotion: VillagerEmotion): string {
   switch (emotion) {
     case "idea":
-      return "scale-[1.02] origin-bottom";
+      return "scale-[1] origin-bottom";
     case "victory":
-      return "scale-[1.04] origin-bottom";
+      return "scale-[1.03] origin-bottom";
     case "thinking":
-      return "scale-[1.12] origin-bottom";
+      return "scale-[1] origin-bottom";
     case "worried":
-      return "scale-[1.14] origin-bottom";
+      return "scale-[1.08] origin-bottom";
     case "happy":
     default:
       return "scale-[1.16] origin-bottom";
@@ -128,11 +142,12 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
       : phase === "outro"
         ? level.outroDialogues
         : [];
-  const currentLine =
-    phase === "prologue"
-      ? lines[prologueDialogueIdx] ?? ""
-      : lines[dialogueIdx] ?? "";
-  const villagerEmotion = getVillagerEmotion(currentLine, phase);
+  const currentDialogue = toDialogueLine(
+    phase === "prologue" ? lines[prologueDialogueIdx] : lines[dialogueIdx],
+    phase
+  );
+  const currentLine = currentDialogue.text;
+  const villagerEmotion = currentDialogue.emotion;
   const villagerImageSrc = `/images/${villagerEmotion}.png`;
   const villagerScaleClass = getVillagerScaleClass(villagerEmotion);
   const canGoBack =
@@ -411,14 +426,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         </div>
       ) : (
         <div className="flex flex-1 flex-col justify-between">
-          <div className="grid items-start gap-4 md:grid-cols-[236px_minmax(0,1fr)]">
-            <div className="relative h-[420px] overflow-hidden">
+          <div className="grid items-start gap-4 md:grid-cols-[250px_minmax(0,1fr)]">
+            <div className="relative mx-auto h-[430px] w-[250px] overflow-hidden">
               <Image
                 src={villagerImageSrc}
                 alt={`Villager ${villagerEmotion}`}
                 fill
                 className={`object-contain object-bottom ${villagerScaleClass}`}
-                sizes="236px"
+                sizes="250px"
                 priority
               />
             </div>

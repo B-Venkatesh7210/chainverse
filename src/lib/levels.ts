@@ -1,12 +1,22 @@
 import { connectMetaMaskWallet, sendEthWithMetaMask } from "@/lib/metamaskWallet";
 
-export const tutorialPrologueDialogues: string[] = [
-  "Tatumian... you finally arrived. This is BlockVille.",
-  "Once, every lane here flowed with clean on-chain energy.",
-  "Then the Great Desync hit — wallets fractured, signals died, alerts went silent.",
-  "I am only a villager. I can tell the story, but I cannot repair the Ville.",
-  "You can. With Tatum tools, chapter by chapter, we rebuild what was lost.",
-  "Stay with me. I will show the problem. You will restore the solution. Let's Goooo!",
+export type VillagerEmotion = "happy" | "idea" | "thinking" | "victory" | "worried";
+
+export type DialogueLine = {
+  text: string;
+  emotion: VillagerEmotion;
+};
+
+export const tutorialPrologueDialogues: DialogueLine[] = [
+  { text: "Tatumian... you finally arrived. This is BlockVille.", emotion: "happy" },
+  { text: "Once, every lane here flowed with clean on-chain energy.", emotion: "happy" },
+  {
+    text: "Then the Great Desync hit — wallets fractured, signals died, alerts went silent.",
+    emotion: "worried",
+  },
+  { text: "I am only a villager. I can tell the story, but I cannot repair the Ville.", emotion: "worried" },
+  { text: "You can. With Tatum tools, chapter by chapter, we rebuild what was lost.", emotion: "idea" },
+  { text: "Stay with me. I will show the problem. You will restore the solution. Let's Goooo!", emotion: "victory" },
 ];
 
 export type LevelActionContext = {
@@ -31,8 +41,8 @@ export type Level = {
   title: string;
   chapterName: string;
   description: string;
-  introDialogues: string[];
-  outroDialogues: string[];
+  introDialogues: DialogueLine[];
+  outroDialogues: DialogueLine[];
   codeSnippet: string;
   action: LevelAction;
 };
@@ -50,13 +60,13 @@ export const levels: Level[] = [
     chapterName: "Wallets are lost",
     description: "Create a new Ethereum wallet for the villagers and Tatumian.",
     introDialogues: [
-      "Tatumian! The villagers have lost their wallets.",
-      "We need to create a new wallet for each villager.",
-      "Let's instruct them in creating a new wallet.",
+      { text: "Tatumian! The villagers have lost their wallets.", emotion: "worried" },
+      { text: "We need to create a new wallet for each villager.", emotion: "thinking" },
+      { text: "Let's instruct them in creating a new wallet.", emotion: "idea" },
     ],
     outroDialogues: [
-      "That's great. You successfully created a new wallet for the villagers and Tatumian.",
-      "We have more problems ahead to address Tatumian.",
+      { text: "That's great. You successfully created a new wallet for the villagers and Tatumian.", emotion: "victory" },
+      { text: "We have more problems ahead to address Tatumian.", emotion: "happy" },
     ],
     codeSnippet: `import { TatumSDK, Network, ApiVersion } from "@tatumio/tatum";
 import { EvmWalletProvider } from "@tatumio/evm-wallet-provider";
@@ -106,13 +116,13 @@ console.log({ mnemonic, xpub: xpubDetails.xpub, address, privateKey });`,
     chapterName: "The Demolished Treasury",
     description: "Read the current balance of a selected wallet address.",
     introDialogues: [
-      "The DeSync hit our Treasury Vault.",
-      "We need to know how much money is left in the vault.",
-      "Ask the chain. Hear the vault whisper.",
+      { text: "The DeSync hit our Treasury Vault.", emotion: "worried" },
+      { text: "We need to know how much money is left in the vault.", emotion: "thinking" },
+      { text: "Ask the chain. Hear the vault whisper.", emotion: "idea" },
     ],
     outroDialogues: [
-      "The vault answered! We can read our balance again.",
-      "Good. Resources mean hope.",
+      { text: "The vault answered! We can read our balance again.", emotion: "victory" },
+      { text: "Good. Resources mean hope.", emotion: "happy" },
     ],
     codeSnippet: `import { TatumSDK, Network, Ethereum, ApiVersion } from "@tatumio/tatum";
 import { EvmWalletProvider } from "@tatumio/evm-wallet-provider";
@@ -161,13 +171,13 @@ console.log({ address, rawBalance: result });`,
     description:
       "Connect MetaMask in the browser and read the active account address.",
     introDialogues: [
-      "The Villagers are finding it difficult to connect their wallets to the vault.",
-      "We will have to instruct them on how to do it using MetaMask.",
-      "Let's show them how to connect wallet to the vault.",
+      { text: "The Villagers are finding it difficult to connect their wallets to the vault.", emotion: "worried" },
+      { text: "We will have to instruct them on how to do it using MetaMask.", emotion: "thinking" },
+      { text: "Let's show them how to connect wallet to the vault.", emotion: "idea" },
     ],
     outroDialogues: [
-      "Vault accepted the connection. Cheers!",
-      "Now the BlockVille villagers can start transacting with the vault.",
+      { text: "Vault accepted the connection. Cheers!", emotion: "victory" },
+      { text: "Now the BlockVille villagers can start transacting with the vault.", emotion: "happy" },
     ],
     codeSnippet: `import { TatumSDK, Network, Ethereum, MetaMask, ApiVersion } from "@tatumio/tatum";
 
@@ -196,12 +206,12 @@ console.log(account);
     chapterName: "Sending Funds Across the Ville",
     description: "Broadcast a signed value transfer on Ethereum Sepolia.",
     introDialogues: [
-      "The lanes for sending funds are broken by thunderstorms.",
-      "We need to fix them ASAP to send funds over.",
+      { text: "The lanes for sending funds are broken by thunderstorms.", emotion: "worried" },
+      { text: "We need to fix them ASAP to send funds over.", emotion: "idea" },
     ],
     outroDialogues: [
-      "The lanes now look superfine.",
-      "The shipments are ready to roll.",
+      { text: "The lanes now look superfine.", emotion: "victory" },
+      { text: "The shipments are ready to roll.", emotion: "happy" },
     ],
     codeSnippet: `import { TatumSDK, Network, Ethereum, MetaMask, ApiVersion } from "@tatumio/tatum";
 
@@ -238,13 +248,13 @@ console.log({ from, to, amount, txHash });`,
     chapterName: "The Sleeping Bell",
     description: "Subscribe to block-level failed transaction alerts via webhook.",
     introDialogues: [
-      "The watchtower bell has been destroyed by the DeSync. No alerts, no warning.",
-      "We must hear chain-wide block alerts from the Ville.",
-      "Wake the bell with a subscription.",
+      { text: "The watchtower bell has been destroyed by the DeSync. No alerts, no warning.", emotion: "worried" },
+      { text: "We must hear chain-wide block alerts from the Ville.", emotion: "thinking" },
+      { text: "Wake the bell with a subscription.", emotion: "idea" },
     ],
     outroDialogues: [
-      "The bell rings again! We'll know when block alerts hit",
-      "Excellent work Tatumian. We are now in control of the Ville.",
+      { text: "The bell rings again! We'll know when block alerts hit", emotion: "victory" },
+      { text: "Excellent work Tatumian. We are now in control of the Ville.", emotion: "victory" },
     ],
     codeSnippet: `const response = await fetch("/api/levels/create-subscription", {
   method: "POST",
