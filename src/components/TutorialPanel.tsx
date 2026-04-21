@@ -92,7 +92,7 @@ function getVillagerScaleClass(emotion: VillagerEmotion): string {
     case "idea":
       return "scale-[1] origin-bottom";
     case "victory":
-      return "scale-[1.03] origin-bottom";
+      return "scale-[0.9] origin-bottom";
     case "thinking":
       return "scale-[1] origin-bottom";
     case "worried":
