@@ -180,32 +180,32 @@ export function LevelCard({ level }: LevelCardProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`group relative flex flex-col justify-between rounded-xl border px-4 py-3 text-left shadow transition hover:bg-slate-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
+        className={`group relative flex flex-col justify-between rounded-xl border px-4 py-3 text-left shadow transition hover:bg-indigo-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
           isCompleted
-            ? "border-emerald-500/50 bg-emerald-950/25 animate-fade-in"
-            : "border-sky-900/60 bg-slate-950/80 hover:border-sky-400/70"
+            ? "border-blue-300/50 bg-blue-500/10 animate-fade-in"
+            : "border-indigo-300/25 bg-[#0b1230]/70 hover:border-indigo-300/65"
         }`}
       >
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-400">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300">
               {level.chapterName}
             </p>
-            <p className="mt-1 text-sm text-zinc-200">{level.title}</p>
+            <p className="mt-1 text-sm text-indigo-50">{level.title}</p>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-500/60 bg-sky-500/20 text-sky-300 transition group-hover:shadow-neon-blue">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-indigo-300/50 bg-indigo-500/20 text-indigo-100 transition group-hover:shadow-neon-blue">
             {isCompleted ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+              <CheckCircle2 className="h-4 w-4 text-blue-200" />
             ) : (
-              <Play className="h-4 w-4 fill-sky-400/40" />
+              <Play className="h-4 w-4 fill-indigo-300/50" />
             )}
           </div>
         </div>
-        <p className="mt-3 text-[11px] text-zinc-500">
+        <p className="mt-3 text-[11px] text-indigo-100/55">
           {level.description}
         </p>
         {isCompleted && (
-          <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-emerald-300">
+          <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-blue-200">
             Cleared
           </p>
         )}

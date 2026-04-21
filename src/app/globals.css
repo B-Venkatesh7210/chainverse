@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #040815;
+  --foreground: #e7ecff;
 }
 
 @theme inline {
@@ -14,15 +14,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #040815;
+    --foreground: #e7ecff;
   }
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at 15% 10%, rgba(91, 76, 255, 0.25), transparent 36%),
+    radial-gradient(circle at 85% 18%, rgba(45, 124, 255, 0.22), transparent 34%),
+    linear-gradient(180deg, #070c1f 0%, #040815 58%, #030611 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, Arial, Helvetica, sans-serif;
 }
 
 @keyframes fade-in {

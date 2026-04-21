@@ -10,15 +10,16 @@ const config: Config = {
     extend: {
       colors: {
         game: {
-          bg: "#020617",
-          panel: "#020617",
-          panelSoft: "#020817",
-          accent: "#38bdf8",
-          accentSoft: "#0f172a",
+          bg: "#040815",
+          panel: "#0A1024",
+          panelSoft: "#111936",
+          accent: "#5B4CFF",
+          accentSecondary: "#2D7CFF",
+          accentSoft: "#171F3F",
         },
       },
       boxShadow: {
-        "neon-blue": "0 0 25px rgba(56, 189, 248, 0.45)",
+        "neon-blue": "0 0 28px rgba(91, 76, 255, 0.4)",
       },
       borderRadius: {
         xl: "1rem",

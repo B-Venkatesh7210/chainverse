@@ -20,7 +20,7 @@ export function CodeSnippet({
 }: CodeSnippetProps) {
   return (
     <div
-      className={`min-w-0 overflow-x-auto rounded-lg border border-zinc-800/80 bg-[#0d1117] ${className}`}
+      className={`min-w-0 overflow-x-auto rounded-lg border border-indigo-300/25 bg-[#060d24] ${className}`}
     >
       <SyntaxHighlighter
         language={language}

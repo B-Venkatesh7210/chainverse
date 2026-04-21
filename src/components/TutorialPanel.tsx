@@ -152,15 +152,15 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   };
 
   return (
-    <section className="flex min-h-[64vh] flex-1 flex-col rounded-2xl border border-sky-900/70 bg-slate-950/90 p-4 shadow-neon-blue">
+    <section className="flex min-h-[64vh] flex-1 flex-col rounded-2xl border border-indigo-400/25 bg-gradient-to-b from-[#0b1230]/95 via-[#0c1433]/90 to-[#080f26]/95 p-4 shadow-neon-blue">
       <div className="mb-3">
-        <p className="text-[11px] uppercase tracking-[0.18em] text-sky-400">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300">
           {phase === "prologue" ? "BlockVille Prologue" : level.chapterName}
         </p>
-        <h2 className="text-lg font-semibold text-zinc-100">
+        <h2 className="text-lg font-semibold text-indigo-50">
           {phase === "prologue" ? "Arrival of the Tatumian" : level.title}
         </h2>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-indigo-100/60">
           {phase === "prologue"
             ? "Hear what happened to BlockVille before the first chapter begins."
             : level.description}
@@ -171,7 +171,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         <button
           type="button"
           onClick={skipTutorial}
-          className="rounded-md border border-zinc-700 px-3 py-1 text-xs uppercase tracking-[0.14em] text-zinc-300 hover:border-zinc-500"
+          className="rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-indigo-100/80 hover:border-indigo-200/55"
         >
           Skip Tutorial
         </button>
@@ -195,7 +195,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                   value={addressInput}
                   onChange={(e) => setAddressInput(e.target.value)}
                   placeholder="0x..."
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200"
+                  className="w-full rounded-md border border-indigo-300/25 bg-[#08102b] px-3 py-2 text-sm text-indigo-50 placeholder:text-indigo-200/35"
                 />
               </div>
             )}
@@ -209,7 +209,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                   value={webhookInput}
                   onChange={(e) => setWebhookInput(e.target.value)}
                   placeholder="https://your-domain.com/api/webhooks/tatum"
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200"
+                  className="w-full rounded-md border border-indigo-300/25 bg-[#08102b] px-3 py-2 text-sm text-indigo-50 placeholder:text-indigo-200/35"
                 />
               </div>
             )}
@@ -219,7 +219,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 type="button"
                 onClick={prevTutorialStep}
                 disabled={!canGoBack}
-                className="rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-300 disabled:opacity-40"
+                className="rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:opacity-40"
               >
                 Back
               </button>
@@ -227,14 +227,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 type="button"
                 onClick={() => void handleTest()}
                 disabled={isRunning}
-                className="rounded-md border border-sky-500/60 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-200"
+                className="rounded-md border border-indigo-300/45 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-50"
               >
                 {isRunning ? "Testing..." : "Let's Test It"}
               </button>
               <button
                 type="button"
                 onClick={continueTutorialWithoutTest}
-                className="rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-300"
+                className="rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85"
               >
                 Continue Anyway
               </button>
@@ -242,7 +242,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 <button
                   type="button"
                   onClick={completeTutorialChallenge}
-                  className="rounded-md border border-emerald-500/60 bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-100"
+                  className="rounded-md border border-blue-300/55 bg-blue-500/25 px-4 py-2 text-sm font-semibold text-blue-50"
                 >
                   Continue Story
                 </button>
@@ -251,28 +251,28 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
 
             <div className="space-y-2 text-xs text-zinc-300">
               {walletResult && (
-                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-300">
+                <div className="rounded-lg border border-indigo-300/30 bg-indigo-500/10 p-3 space-y-1">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-indigo-200">
                     Wallet Result
                   </p>
                   <p className="break-all">
-                    <span className="text-zinc-500">Address:</span>{" "}
+                    <span className="text-indigo-200/55">Address:</span>{" "}
                     {walletResult.address}
                   </p>
                   {walletResult.xpub && (
                     <p className="break-all">
-                      <span className="text-zinc-500">Xpub:</span>{" "}
+                      <span className="text-indigo-200/55">Xpub:</span>{" "}
                       {walletResult.xpub}
                     </p>
                   )}
                   {walletResult.mnemonic && (
                     <p className="break-words">
-                      <span className="text-zinc-500">Mnemonic:</span>{" "}
+                      <span className="text-indigo-200/55">Mnemonic:</span>{" "}
                       {walletResult.mnemonic}
                     </p>
                   )}
                   <p className="break-all">
-                    <span className="text-zinc-500">Private Key:</span>{" "}
+                    <span className="text-indigo-200/55">Private Key:</span>{" "}
                     {revealPrivateKey
                       ? walletResult.privateKey
                       : `${walletResult.privateKey.slice(0, 8)}...${walletResult.privateKey.slice(-6)}`}
@@ -280,7 +280,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                   <button
                     type="button"
                     onClick={() => setRevealPrivateKey((v) => !v)}
-                    className="mt-1 rounded border border-zinc-600 px-2 py-1 text-[11px] text-zinc-200 hover:border-zinc-400"
+                    className="mt-1 rounded border border-indigo-300/30 px-2 py-1 text-[11px] text-indigo-100 hover:border-indigo-200/60"
                   >
                     {revealPrivateKey ? "Hide Private Key" : "Reveal Private Key"}
                   </button>
@@ -289,37 +289,37 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
               {balanceResult && <p>ETH Balance: {balanceResult.ethBalance}</p>}
               {connectResult && <p>Connected: {connectResult.address}</p>}
               {sendResult && (
-                <div className="rounded-lg border border-sky-700/50 bg-sky-900/10 p-3 space-y-1">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-sky-300">
+                <div className="rounded-lg border border-blue-300/35 bg-blue-500/10 p-3 space-y-1">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-blue-200">
                     Transaction Result
                   </p>
                   <p className="break-all">
-                    <span className="text-zinc-500">From:</span> {sendResult.from}
+                    <span className="text-indigo-200/55">From:</span> {sendResult.from}
                   </p>
                   <p className="break-all">
-                    <span className="text-zinc-500">To:</span> {sendResult.to}
+                    <span className="text-indigo-200/55">To:</span> {sendResult.to}
                   </p>
                   <p>
-                    <span className="text-zinc-500">Amount:</span>{" "}
+                    <span className="text-indigo-200/55">Amount:</span>{" "}
                     {sendResult.amountEth} ETH
                   </p>
                   <p className="break-all">
-                    <span className="text-zinc-500">Tx Hash:</span>{" "}
+                    <span className="text-indigo-200/55">Tx Hash:</span>{" "}
                     {sendResult.txHash}
                   </p>
                 </div>
               )}
               {subscriptionResult && (
-                <div className="rounded-lg border border-amber-700/50 bg-amber-900/10 p-3 space-y-1">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-amber-300">
+                <div className="rounded-lg border border-indigo-300/30 bg-indigo-500/10 p-3 space-y-1">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-indigo-200">
                     Subscription Result
                   </p>
                   <p>
-                    <span className="text-zinc-500">Type:</span>{" "}
+                    <span className="text-indigo-200/55">Type:</span>{" "}
                     {subscriptionResult.type}
                   </p>
                   <p className="break-all">
-                    <span className="text-zinc-500">Webhook URL:</span>{" "}
+                    <span className="text-indigo-200/55">Webhook URL:</span>{" "}
                     {subscriptionResult.webhookUrl}
                   </p>
                 </div>
@@ -340,14 +340,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
       ) : (
         <div className="flex flex-1 flex-col justify-between">
           <div className="flex items-start gap-3">
-            <div className="h-11 w-11 rounded-full border border-amber-500/60 bg-amber-500/15 flex items-center justify-center text-lg">
+            <div className="h-11 w-11 rounded-full border border-indigo-300/45 bg-indigo-500/20 flex items-center justify-center text-lg">
               🧑‍🌾
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-amber-300">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-indigo-200">
                 Villager of BlockVille
               </p>
-              <div className="mt-2 rounded-xl border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-sm text-amber-100 min-h-[52px]">
+              <div className="mt-2 rounded-xl border border-indigo-300/25 bg-indigo-500/10 px-3 py-2 text-sm text-indigo-50 min-h-[52px]">
                 <TypewriterText text={currentLine} playKey={typewriterKey} />
               </div>
             </div>
@@ -357,14 +357,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
               type="button"
               onClick={prevTutorialStep}
               disabled={!canGoBack}
-              className="mr-2 rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-300 disabled:opacity-40"
+              className="mr-2 rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:opacity-40"
             >
               Back
             </button>
             <button
               type="button"
               onClick={nextTutorialDialogue}
-              className="rounded-md border border-amber-500/60 bg-amber-500/20 px-4 py-2 text-sm font-semibold text-amber-100"
+              className="rounded-md border border-indigo-300/50 bg-gradient-to-r from-[#5B4CFF]/60 to-[#2D7CFF]/60 px-4 py-2 text-sm font-semibold text-indigo-50"
             >
               Next
             </button>
