@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { LevelCard } from "./LevelCard";
 import { levels } from "@/lib/levels";
 import { useGameStore } from "@/store/gameStore";
@@ -42,16 +43,21 @@ export function GameEngine() {
           </div>
 
           <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-[#5B4CFF]/30 to-[#2D7CFF]/30 border border-indigo-300/40 shadow-neon-blue flex items-center justify-center text-indigo-100 text-sm font-black">
-              TT
-            </div>
+          <div className="flex items-center gap-5">
+            <Image
+              src="/images/logo.png"
+              alt="Tatum logo"
+              width={72}
+              height={32}
+              className="h-6 w-auto object-contain"
+              priority
+            />
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-indigo-100/85">
                 BlockVille
               </p>
               <p className="text-xs text-indigo-200/55">
-                Powered by Tatum infrastructure
+                Powered by Tatum
               </p>
             </div>
           </div>

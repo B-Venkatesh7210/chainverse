@@ -426,7 +426,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
               <p className="text-[10px] uppercase tracking-[0.18em] text-indigo-200">
                 Villager of BlockVille
               </p>
-              <div className="mt-2 rounded-2xl border border-indigo-300/25 bg-gradient-to-br from-indigo-500/20 to-blue-500/10 px-4 py-3 text-sm text-indigo-50 min-h-[72px] shadow-[0_12px_34px_rgba(37,99,235,0.2)]">
+              <div className="mt-2 inline-block w-fit max-w-[72ch] rounded-2xl border border-indigo-300/25 bg-gradient-to-br from-indigo-500/20 to-blue-500/10 px-4 py-3 text-sm text-indigo-50 min-h-[72px] shadow-[0_12px_34px_rgba(37,99,235,0.2)]">
                 <TypewriterText text={currentLine} playKey={typewriterKey} />
               </div>
             </div>
