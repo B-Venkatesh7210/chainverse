@@ -28,7 +28,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   const [revealPrivateKey, setRevealPrivateKey] = React.useState(false);
   const [addressInput, setAddressInput] = React.useState("");
   const [webhookInput, setWebhookInput] = React.useState(
-    "https://example.com/mock-webhook"
+    "https://example.com/webhook"
   );
 
   const phase = useGameStore((state) => state.tutorialPhase);
@@ -99,7 +99,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
       : undefined;
   const subscriptionResult =
     level.kind === "subscribe"
-      ? (levelResult as { type: string; address: string; webhookUrl: string })
+      ? (levelResult as { type: string; webhookUrl: string })
       : undefined;
   const rpcResult =
     level.kind === "rpc"
@@ -184,7 +184,6 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
 
             {(level.kind === "balance" ||
               level.kind === "send" ||
-              level.kind === "subscribe" ||
               level.kind === "rpc") && (
               <div>
                 <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500">
@@ -204,11 +203,12 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
             {level.kind === "subscribe" && (
               <div>
                 <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500">
-                  Webhook URL (mock)
+                  Webhook URL
                 </label>
                 <input
                   value={webhookInput}
                   onChange={(e) => setWebhookInput(e.target.value)}
+                  placeholder="https://your-domain.com/api/webhooks/tatum"
                   className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200"
                 />
               </div>
@@ -310,10 +310,19 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 </div>
               )}
               {subscriptionResult && (
-                <p>
-                  Subscription: {subscriptionResult.type} for{" "}
-                  {subscriptionResult.address}
-                </p>
+                <div className="rounded-lg border border-amber-700/50 bg-amber-900/10 p-3 space-y-1">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-amber-300">
+                    Subscription Result
+                  </p>
+                  <p>
+                    <span className="text-zinc-500">Type:</span>{" "}
+                    {subscriptionResult.type}
+                  </p>
+                  <p className="break-all">
+                    <span className="text-zinc-500">Webhook URL:</span>{" "}
+                    {subscriptionResult.webhookUrl}
+                  </p>
+                </div>
               )}
               {rpcResult && (
                 <p>

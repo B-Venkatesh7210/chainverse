@@ -236,39 +236,34 @@ console.log({ from, to, amount, txHash });`,
     kind: "subscribe",
     title: "Watchtower Bell",
     chapterName: "The Sleeping Bell",
-    description: "Subscribe to address activity with a webhook endpoint.",
+    description: "Subscribe to block-level failed transaction alerts via webhook.",
     introDialogues: [
       "The watchtower bell has been destroyed by the DeSync. No alerts, no warning.",
-      "We must hear every transaction happening in the Ville.",
+      "We must hear chain-wide block alerts from the Ville.",
       "Wake the bell with a subscription.",
     ],
     outroDialogues: [
-      "The bell rings again! We'll know when txn hits",
+      "The bell rings again! We'll know when block alerts hit",
       "Excellent work Tatumian. We are now in control of the Ville.",
     ],
     codeSnippet: `const response = await fetch("/api/levels/create-subscription", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    address: "WATCH_ADDRESS",
     webhookUrl: "https://example.com/webhook",
   }),
 });
 const result = await response.json();
-console.log(result.type); // ADDRESS_TRANSACTION`,
+console.log(result.type); // FAILED_TXS_PER_BLOCK`,
     action: async ({ log, setResult, input }) => {
-      const address = input?.address?.trim();
       const webhookUrl = input?.webhookUrl?.trim();
-      if (!address) throw new Error("Wallet address is required.");
       if (!webhookUrl) throw new Error("Webhook URL is required.");
 
-      log(
-        `Watchtower Bell: creating ADDRESS_TRANSACTION subscription for ${address}`
-      );
+      log("Watchtower Bell: creating FAILED_TXS_PER_BLOCK subscription...");
       const response = await fetch("/api/levels/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address, webhookUrl }),
+        body: JSON.stringify({ webhookUrl }),
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -276,12 +271,11 @@ console.log(result.type); // ADDRESS_TRANSACTION`,
       }
       const result = (await response.json()) as {
         type: string;
-        address: string;
         webhookUrl: string;
         subscription: unknown;
       };
       setResult(result);
-      log(`Watchtower Bell complete: subscription for ${result.address}`);
+      log(`Watchtower Bell complete: ${result.type} subscription created`);
       return result;
     },
   },

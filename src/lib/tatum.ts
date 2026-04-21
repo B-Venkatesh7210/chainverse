@@ -101,16 +101,26 @@ export async function sendTransaction(payload: SendTransactionPayload) {
   return txHash;
 }
 
-export type CreateSubscriptionParams = {
+export type CreateAddressSubscriptionParams = {
   address: string;
   url: string;
 };
 
-export async function createSubscription(params: CreateSubscriptionParams) {
+export async function createAddressSubscription(
+  params: CreateAddressSubscriptionParams
+) {
   const tatum = await getClient();
   const subscription = await tatum.notification.subscribe.addressEvent({
     address: params.address,
     url: params.url,
+  });
+  return subscription;
+}
+
+export async function createFailedTxsPerBlockSubscription(url: string) {
+  const tatum = await getClient();
+  const subscription = await tatum.notification.subscribe.failedTxsPerBlock({
+    url,
   });
   return subscription;
 }
