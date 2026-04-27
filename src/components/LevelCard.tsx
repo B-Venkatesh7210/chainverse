@@ -178,10 +178,10 @@ export function LevelCard({ level }: LevelCardProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`group relative flex flex-col justify-between rounded-xl border px-4 py-3 text-left shadow transition hover:bg-indigo-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+        className={`group relative flex flex-col justify-between rounded-xl border px-4 py-3 text-left shadow transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 bg-[linear-gradient(rgba(11,18,48,0.76),rgba(11,18,48,0.76)),url('/images/background.png')] bg-cover bg-center ${
           isCompleted
-            ? "border-blue-300/50 bg-blue-500/10 animate-fade-in"
-            : "border-indigo-300/25 bg-[#0b1230]/70 hover:border-indigo-300/65"
+            ? "border-blue-300/50 animate-fade-in"
+            : "border-indigo-300/25 hover:border-indigo-300/65 hover:bg-[linear-gradient(rgba(11,18,48,0.68),rgba(11,18,48,0.68)),url('/images/background.png')]"
         }`}
       >
         <div className="flex items-center justify-between gap-2">

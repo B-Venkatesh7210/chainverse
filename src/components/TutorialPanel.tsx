@@ -215,6 +215,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         : phase === "challenge"
           ? true
           : dialogueIdx > 0 || phase === "outro";
+  const isChallengeView = phase === "challenge";
 
   const walletResult =
     level.kind === "wallet"
@@ -310,8 +311,21 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   };
 
   return (
-    <section className="flex min-h-[64vh] flex-1 flex-col justify-between rounded-2xl border border-indigo-400/25 bg-gradient-to-b from-[#0b1230]/95 via-[#0c1433]/90 to-[#080f26]/95 p-4 shadow-neon-blue">
-      <div className="mb-5">
+    <section
+      className={`relative flex min-h-[64vh] flex-1 flex-col justify-between overflow-hidden rounded-2xl border border-indigo-400/25 shadow-neon-blue ${
+        isChallengeView
+          ? "bg-gradient-to-b from-[#0b1230]/95 via-[#0c1433]/90 to-[#080f26]/95 p-4"
+          : ""
+      }`}
+    >
+      {!isChallengeView && (
+        <>
+          <div className="pointer-events-none absolute inset-0 bg-[url('/images/background.png')] bg-cover bg-center bg-no-repeat" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#070f2a]/36 via-[#070f2a]/46 to-[#070f2a]/58" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(107,87,255,0.23),transparent_42%),radial-gradient(circle_at_78%_74%,rgba(45,124,255,0.16),transparent_44%)]" />
+        </>
+      )}
+      <div className={`relative ${isChallengeView ? "mb-5" : "px-4 pt-4"}`}>
         <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300">
           {phase === "prologue" ? "BlockVille Prologue" : level.chapterName}
         </p>
@@ -532,11 +546,10 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-1 flex-col">
+        <div className="relative flex flex-1 flex-col overflow-hidden">
           {/* <div className="relative overflow-hidden rounded-2xl border border-indigo-300/20 bg-gradient-to-b from-[#101947]/80 via-[#0d1439]/70 to-[#09112f]/90 p-4 shadow-[0_20px_40px_rgba(12,35,92,0.35)]"> */}
           <div className="flex flex-1 items-center">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(107,87,255,0.23),transparent_42%),radial-gradient(circle_at_78%_74%,rgba(45,124,255,0.16),transparent_44%)]" />
-            <div className="relative grid w-full items-start gap-4 md:grid-cols-[250px_minmax(0,1fr)]">
+            <div className="relative grid w-full items-start gap-4 px-4 md:grid-cols-[250px_minmax(0,1fr)]">
               <div className="relative mx-auto h-[430px] w-[250px] overflow-hidden">
                 <Image
                   src={villagerImageSrc}
@@ -586,7 +599,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
           </div>
           {/* </div> */}
 
-          <div className="pt-5 flex items-center justify-between gap-3">
+          <div className="relative flex items-center justify-between gap-3 px-4 pb-4 pt-5">
             <button
               type="button"
               onClick={skipTutorial}
