@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "tatum": {
+      "source": "mohit.thakkar/tatum-integration-skill",
+      "sourceType": "gitlab",
+      "computedHash": "331ff46a06df0dfd56e99643adc1f5484caf8b5d0b83def86cd48d927a951166"
+    }
+  }
+}

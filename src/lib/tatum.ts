@@ -84,6 +84,12 @@ export async function getRpcBalanceRaw(address: string) {
   return tatum.rpc.getBalance(address);
 }
 
+export async function getRpcTransactionByHash(txHash: string) {
+  const tatum = await getClient();
+  const tx = await tatum.rpc.getTransactionByHash(txHash);
+  return tx;
+}
+
 export type SendTransactionPayload = {
   privateKey: string;
   to: string;

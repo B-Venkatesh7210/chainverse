@@ -96,6 +96,19 @@ export function LevelCard({ level }: LevelCardProps) {
             }
           | undefined)
       : undefined;
+  const txByHashResult =
+    level.kind === "txByHash"
+      ? (levelResult as
+          | {
+              txHash: string;
+              from: string | null;
+              to: string | null;
+              value: string | null;
+              valueEth: string | null;
+              blockNumber: string | null;
+            }
+          | undefined)
+      : undefined;
 
   const handleTest = async () => {
     setIsRunning(true);
@@ -105,9 +118,10 @@ export function LevelCard({ level }: LevelCardProps) {
         setResult: (result) => setLevelResult(level.id, result),
         input:
           level.kind === "balance" ||
+          level.kind === "txByHash" ||
           level.kind === "subscribe" ||
           level.kind === "rpc"
-            ? { address: addressInput, webhookUrl: webhookInput }
+            ? { address: addressInput, webhookUrl: webhookInput, txHash: addressInput }
             : undefined,
       });
       markLevelCompleted(level.id);
@@ -215,6 +229,7 @@ export function LevelCard({ level }: LevelCardProps) {
           <CodeSnippet code={level.codeSnippet} language="typescript" />
         </div>
         {(level.kind === "balance" ||
+          level.kind === "txByHash" ||
           level.kind === "subscribe" ||
           level.kind === "rpc") && (
           <div className="mt-4">
@@ -222,13 +237,17 @@ export function LevelCard({ level }: LevelCardProps) {
               htmlFor={`wallet-address-${level.id}`}
               className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500"
             >
-              Wallet Address
+              {level.kind === "txByHash" ? "Transaction Hash" : "Wallet Address"}
             </label>
             <input
               id={`wallet-address-${level.id}`}
               value={addressInput}
               onChange={(e) => setAddressInput(e.target.value)}
-              placeholder="0x..."
+              placeholder={
+                level.kind === "txByHash"
+                  ? "0x...transactionHash"
+                  : "0x..."
+              }
               className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
             />
           </div>
@@ -400,6 +419,32 @@ export function LevelCard({ level }: LevelCardProps) {
                 </p>
               </div>
             )}
+          </div>
+        )}
+        {txByHashResult && (
+          <div className="rounded-lg border border-indigo-700/50 bg-indigo-900/10 p-3 text-xs">
+            <p className="mb-2 font-semibold uppercase tracking-[0.18em] text-indigo-300">
+              Transaction Lookup
+            </p>
+            <p className="break-all text-zinc-200">
+              <span className="text-zinc-500">Tx Hash:</span> {txByHashResult.txHash}
+            </p>
+            <p className="mt-1 break-all text-zinc-200">
+              <span className="text-zinc-500">From:</span>{" "}
+              {txByHashResult.from ?? "Unknown"}
+            </p>
+            <p className="mt-1 break-all text-zinc-200">
+              <span className="text-zinc-500">To:</span>{" "}
+              {txByHashResult.to ?? "Contract creation"}
+            </p>
+            <p className="mt-1 text-zinc-100">
+              <span className="text-zinc-500">Value:</span>{" "}
+              {txByHashResult.valueEth ?? "0"} ETH
+            </p>
+            <p className="mt-1 text-zinc-100">
+              <span className="text-zinc-500">Block:</span>{" "}
+              {txByHashResult.blockNumber ?? "Pending"}
+            </p>
           </div>
         )}
         </div>

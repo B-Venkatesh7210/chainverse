@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { ArrowRight, Lightbulb, Target } from "lucide-react";
 import { CodeSnippet } from "./CodeSnippet";
 import { TypewriterText } from "./TypewriterText";
 import { ConsolePanel } from "./ConsolePanel";
@@ -92,14 +93,68 @@ function getVillagerScaleClass(emotion: VillagerEmotion): string {
     case "idea":
       return "scale-[1] origin-bottom";
     case "victory":
-      return "scale-[0.9] origin-bottom";
+      return "scale-[1] origin-bottom";
     case "thinking":
       return "scale-[1] origin-bottom";
     case "worried":
-      return "scale-[1.08] origin-bottom";
+      return "scale-[1] origin-bottom";
     case "happy":
     default:
-      return "scale-[1.16] origin-bottom";
+      return "scale-[1] origin-bottom";
+  }
+}
+
+function getDialogueTask(level: Level, phase: string): string {
+  if (phase === "prologue") {
+    return "Understand what happened in BlockVille and prepare to restore each core blockchain workflow.";
+  }
+
+  switch (level.kind) {
+    case "wallet":
+      return "Generate a brand new Ethereum wallet for a villager with mnemonic, address, and private key output.";
+    case "balance":
+      return "Fetch a wallet balance on Sepolia and confirm the remaining treasury funds.";
+    case "connect":
+      return "Connect MetaMask and return the active wallet address from the browser.";
+    case "send":
+      return "Send a small Sepolia ETH transaction and verify the resulting tx hash.";
+    case "txByHash":
+      return "Inspect a Sepolia transaction using only its hash and decode its key fields.";
+    case "subscribe":
+      return "Create a real webhook subscription for block-level failed transaction alerts.";
+    case "rpc":
+      return "Query chain state directly through RPC and compare output formats.";
+    default:
+      return "Complete this chapter objective with Tatum tools.";
+  }
+}
+
+function getDialogueLearnItems(level: Level, phase: string): string[] {
+  if (phase === "prologue") {
+    return [
+      "BlockVille mission context",
+      "Tutorial flow and chapter goals",
+      "How Tatum fits each repair step",
+    ];
+  }
+
+  switch (level.kind) {
+    case "wallet":
+      return ["Generating mnemonic", "Deriving wallet address", "Reading private key output"];
+    case "balance":
+      return ["Using wallet input safely", "Fetching on-chain balance", "Reading wei to ETH values"];
+    case "connect":
+      return ["Connecting MetaMask", "Handling wallet permissions", "Returning selected account"];
+    case "send":
+      return ["Sending native ETH", "Using connected wallet signer", "Tracking tx hash result"];
+    case "txByHash":
+      return ["Using tx hash input", "Fetching transaction details", "Reading sender, receiver, and value"];
+    case "subscribe":
+      return ["Configuring webhook URL", "Creating subscription in Tatum", "Receiving alert events"];
+    case "rpc":
+      return ["Calling RPC methods", "Reading raw responses", "Comparing API vs RPC"];
+    default:
+      return ["Core workflow", "Validation", "Result interpretation"];
   }
 }
 
@@ -150,6 +205,8 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   const villagerEmotion = currentDialogue.emotion;
   const villagerImageSrc = `/images/${villagerEmotion}.png`;
   const villagerScaleClass = getVillagerScaleClass(villagerEmotion);
+  const dialogueTask = getDialogueTask(level, phase);
+  const dialogueLearnItems = getDialogueLearnItems(level, phase);
   const canGoBack =
     phase === "prologue"
       ? prologueDialogueIdx > 0
@@ -188,6 +245,19 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
     level.kind === "subscribe"
       ? (levelResult as { type: string; webhookUrl: string })
       : undefined;
+  const txByHashResult =
+    level.kind === "txByHash"
+      ? (levelResult as
+          | {
+              txHash: string;
+              from: string | null;
+              to: string | null;
+              value: string | null;
+              valueEth: string | null;
+              blockNumber: string | null;
+            }
+          | undefined)
+      : undefined;
   const rpcResult =
     level.kind === "rpc"
       ? (levelResult as
@@ -216,9 +286,10 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         input:
           level.kind === "balance" ||
           level.kind === "send" ||
+          level.kind === "txByHash" ||
           level.kind === "subscribe" ||
           level.kind === "rpc"
-            ? { address: addressInput, webhookUrl: webhookInput }
+            ? { address: addressInput, webhookUrl: webhookInput, txHash: addressInput }
             : undefined,
       });
 
@@ -239,7 +310,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   };
 
   return (
-    <section className="flex min-h-[64vh] flex-1 flex-col rounded-2xl border border-indigo-400/25 bg-gradient-to-b from-[#0b1230]/95 via-[#0c1433]/90 to-[#080f26]/95 p-4 shadow-neon-blue">
+    <section className="flex min-h-[64vh] flex-1 flex-col justify-between rounded-2xl border border-indigo-400/25 bg-gradient-to-b from-[#0b1230]/95 via-[#0c1433]/90 to-[#080f26]/95 p-4 shadow-neon-blue">
       <div className="mb-3">
         <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300">
           {phase === "prologue" ? "BlockVille Prologue" : level.chapterName}
@@ -254,15 +325,17 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         </p>
       </div>
 
-      <div className="mb-4 flex items-start justify-end gap-3">
-        <button
-          type="button"
-          onClick={skipTutorial}
-          className="rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-indigo-100/80 hover:border-indigo-200/55"
-        >
-          Skip Tutorial
-        </button>
-      </div>
+      {phase === "challenge" && (
+        <div className="mb-4 flex items-start justify-end gap-3">
+          <button
+            type="button"
+            onClick={skipTutorial}
+            className="rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-indigo-100/80 hover:border-indigo-200/55"
+          >
+            Skip Tutorial
+          </button>
+        </div>
+      )}
 
       {phase === "challenge" ? (
         <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
@@ -271,17 +344,24 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
 
             {(level.kind === "balance" ||
               level.kind === "send" ||
+              level.kind === "txByHash" ||
               level.kind === "rpc") && (
               <div>
                 <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500">
                   {level.kind === "send"
                     ? "Recipient Address"
-                    : "Wallet Address"}
+                    : level.kind === "txByHash"
+                      ? "Transaction Hash"
+                      : "Wallet Address"}
                 </label>
                 <input
                   value={addressInput}
                   onChange={(e) => setAddressInput(e.target.value)}
-                  placeholder="0x..."
+                  placeholder={
+                    level.kind === "txByHash"
+                      ? "0x...transactionHash"
+                      : "0x..."
+                  }
                   className="w-full rounded-md border border-indigo-300/25 bg-[#08102b] px-3 py-2 text-sm text-indigo-50 placeholder:text-indigo-200/35"
                 />
               </div>
@@ -396,6 +476,33 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                   </p>
                 </div>
               )}
+              {txByHashResult && (
+                <div className="rounded-lg border border-indigo-300/30 bg-indigo-500/10 p-3 space-y-1">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-indigo-200">
+                    Transaction Lookup
+                  </p>
+                  <p className="break-all">
+                    <span className="text-indigo-200/55">Tx Hash:</span>{" "}
+                    {txByHashResult.txHash}
+                  </p>
+                  <p className="break-all">
+                    <span className="text-indigo-200/55">From:</span>{" "}
+                    {txByHashResult.from ?? "Unknown"}
+                  </p>
+                  <p className="break-all">
+                    <span className="text-indigo-200/55">To:</span>{" "}
+                    {txByHashResult.to ?? "Contract creation"}
+                  </p>
+                  <p>
+                    <span className="text-indigo-200/55">Value:</span>{" "}
+                    {txByHashResult.valueEth ?? "0"} ETH
+                  </p>
+                  <p>
+                    <span className="text-indigo-200/55">Block Number:</span>{" "}
+                    {txByHashResult.blockNumber ?? "Pending"}
+                  </p>
+                </div>
+              )}
               {subscriptionResult && (
                 <div className="rounded-lg border border-indigo-300/30 bg-indigo-500/10 p-3 space-y-1">
                   <p className="font-semibold uppercase tracking-[0.16em] text-indigo-200">
@@ -426,42 +533,83 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         </div>
       ) : (
         <div className="flex flex-1 flex-col justify-between">
-          <div className="grid items-start gap-4 md:grid-cols-[250px_minmax(0,1fr)]">
-            <div className="relative mx-auto h-[430px] w-[250px] overflow-hidden">
-              <Image
-                src={villagerImageSrc}
-                alt={`Villager ${villagerEmotion}`}
-                fill
-                className={`object-contain object-bottom ${villagerScaleClass}`}
-                sizes="250px"
-                priority
-              />
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-indigo-200">
-                Villager of BlockVille
-              </p>
-              <div className="mt-2 inline-block w-fit max-w-[72ch] rounded-2xl border border-indigo-300/25 bg-gradient-to-br from-indigo-500/20 to-blue-500/10 px-4 py-3 text-sm text-indigo-50 min-h-[72px] shadow-[0_12px_34px_rgba(37,99,235,0.2)]">
-                <TypewriterText text={currentLine} playKey={typewriterKey} />
+          {/* <div className="relative overflow-hidden rounded-2xl border border-indigo-300/20 bg-gradient-to-b from-[#101947]/80 via-[#0d1439]/70 to-[#09112f]/90 p-4 shadow-[0_20px_40px_rgba(12,35,92,0.35)]"> */}
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(107,87,255,0.23),transparent_42%),radial-gradient(circle_at_78%_74%,rgba(45,124,255,0.16),transparent_44%)]" />
+            <div className="relative grid items-start gap-4 md:grid-cols-[250px_minmax(0,1fr)]">
+              <div className="relative mx-auto h-[430px] w-[250px] overflow-hidden">
+                <Image
+                  src={villagerImageSrc}
+                  alt={`Villager ${villagerEmotion}`}
+                  fill
+                  className={`object-contain object-bottom ${villagerScaleClass}`}
+                  sizes="250px"
+                  priority
+                />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-indigo-200">
+                  Villager of BlockVille
+                </p>
+                <div className="mt-2 inline-block w-fit max-w-[72ch] rounded-2xl border border-indigo-300/25 bg-gradient-to-br from-indigo-500/25 to-blue-500/10 px-4 py-3 text-sm text-indigo-50 min-h-[72px] shadow-[0_12px_34px_rgba(37,99,235,0.2)]">
+                  <TypewriterText text={currentLine} playKey={typewriterKey} />
+                </div>
+
+                <div className="mt-5 grid gap-4">
+                  <div className="rounded-xl border border-indigo-300/20 bg-[#0a1231]/70 p-3">
+                    <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-200/90">
+                      <Target className="h-3.5 w-3.5" />
+                      Task
+                    </p>
+                    <p className="text-sm text-indigo-100/80">{dialogueTask}</p>
+                  </div>
+
+                  <div className="rounded-xl border border-indigo-300/20 bg-[#0a1231]/70 p-3">
+                    <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-200/90">
+                      <Lightbulb className="h-3.5 w-3.5" />
+                      What You&apos;ll Learn
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {dialogueLearnItems.map((item) => (
+                        <span
+                          key={item}
+                          className="rounded-md border border-indigo-300/20 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-100/85"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="pt-4">
+          {/* </div> */}
+
+          <div className="pt-4 flex items-center justify-between gap-3">
             <button
               type="button"
-              onClick={prevTutorialStep}
-              disabled={!canGoBack}
-              className="mr-2 rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:opacity-40"
+              onClick={skipTutorial}
+              className="rounded-md border border-indigo-300/30 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-100/85 hover:border-indigo-200/55"
             >
-              Back
+              Skip Tutorial
             </button>
-            <button
-              type="button"
-              onClick={nextTutorialDialogue}
-              className="rounded-md border border-indigo-300/50 bg-gradient-to-r from-[#5B4CFF]/60 to-[#2D7CFF]/60 px-4 py-2 text-sm font-semibold text-indigo-50"
-            >
-              Next
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={prevTutorialStep}
+                disabled={!canGoBack}
+                className="rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:opacity-40"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={nextTutorialDialogue}
+                className="inline-flex items-center gap-1 rounded-md border border-indigo-300/50 bg-gradient-to-r from-[#5B4CFF]/70 to-[#2D7CFF]/70 px-4 py-2 text-sm font-semibold text-indigo-50"
+              >
+                Next
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       )}

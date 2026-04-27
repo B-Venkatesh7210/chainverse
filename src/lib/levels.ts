@@ -32,6 +32,7 @@ export type LevelKind =
   | "balance"
   | "connect"
   | "send"
+  | "txByHash"
   | "subscribe"
   | "rpc";
 
@@ -238,6 +239,72 @@ console.log({ from, to, amount, txHash });`,
       const result = await sendEthWithMetaMask(recipient, "0.00001");
       setResult(result);
       log(`Broken Lanes complete: tx ${result.txHash}`);
+      return result;
+    },
+  },
+  {
+    id: "hash-lantern",
+    kind: "txByHash",
+    title: "Hash Lantern",
+    chapterName: "Tracing the Missing Caravan",
+    description: "Find a transaction by hash and inspect who sent what across the Ville.",
+    introDialogues: [
+      { text: "A supply caravan vanished in the storm, but it left a glowing hash trail.", emotion: "worried" },
+      { text: "If we follow that transaction hash, we can learn where the cargo truly went.", emotion: "thinking" },
+      { text: "Light the Hash Lantern, Tatumian. Let the chain tell the full story.", emotion: "idea" },
+    ],
+    outroDialogues: [
+      { text: "The lantern worked! We traced the caravan and restored the route records.", emotion: "victory" },
+      { text: "BlockVille can trust its shipment history again. Nicely done.", emotion: "happy" },
+    ],
+    codeSnippet: `import { TatumSDK, Network, Ethereum, ApiVersion } from "@tatumio/tatum";
+
+const tatum = await TatumSDK.init<Ethereum>({
+  network: Network.ETHEREUM_SEPOLIA,
+  version: ApiVersion.V4,
+  apiKey: { v4: process.env.TATUM_API_KEY_V4! },
+});
+
+const txHash = "0xYOUR_TX_HASH";
+const tx = await tatum.rpc.getTransactionByHash(txHash);
+
+console.log({
+  hash: tx?.hash,
+  from: tx?.from,
+  to: tx?.to,
+  value: tx?.value,
+  blockNumber: tx?.blockNumber,
+});`,
+    action: async ({ log, setResult, input }) => {
+      const txHash = input?.txHash?.trim();
+      if (!txHash) {
+        throw new Error("Transaction hash is required.");
+      }
+
+      log(`Hash Lantern: tracing transaction ${txHash}`);
+      const response = await fetch("/api/levels/fetch-tx-by-hash", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ txHash }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to fetch transaction.");
+      }
+      const result = (await response.json()) as {
+        txHash: string;
+        from: string | null;
+        to: string | null;
+        value: string | null;
+        valueEth: string | null;
+        blockNumber: string | null;
+      };
+      setResult(result);
+      log(
+        `Hash Lantern complete: ${result.txHash} from ${result.from ?? "unknown"} to ${
+          result.to ?? "contract creation"
+        }`
+      );
       return result;
     },
   },
