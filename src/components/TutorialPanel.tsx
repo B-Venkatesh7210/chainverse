@@ -326,30 +326,31 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
         </>
       )}
       <div className={`relative ${isChallengeView ? "mb-5" : "px-4 pt-4"}`}>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300">
-          {phase === "prologue" ? "BlockVille Prologue" : level.chapterName}
-        </p>
-        <h2 className="text-lg font-semibold text-indigo-50">
-          {phase === "prologue" ? "Arrival of the Tatumian" : level.title}
-        </h2>
-        <p className="text-sm text-indigo-100/60">
-          {phase === "prologue"
-            ? "Hear what happened to BlockVille before the first chapter begins."
-            : level.description}
-        </p>
-      </div>
-
-      {phase === "challenge" && (
-        <div className="mb-4 flex items-start justify-end gap-3">
-          <button
-            type="button"
-            onClick={skipTutorial}
-            className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-indigo-100/80 hover:border-indigo-200/55"
-          >
-            Skip Tutorial
-          </button>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300">
+              {phase === "prologue" ? "BlockVille Prologue" : level.chapterName}
+            </p>
+            <h2 className="text-lg font-semibold text-indigo-50">
+              {phase === "prologue" ? "Arrival of the Tatumian" : level.title}
+            </h2>
+            <p className="text-sm text-indigo-100/60">
+              {phase === "prologue"
+                ? "Hear what happened to BlockVille before the first chapter begins."
+                : level.description}
+            </p>
+          </div>
+          {phase === "challenge" && (
+            <button
+              type="button"
+              onClick={skipTutorial}
+              className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-indigo-100/80 hover:border-indigo-200/55"
+            >
+              Skip Tutorial
+            </button>
+          )}
         </div>
-      )}
+      </div>
 
       {phase === "challenge" ? (
         <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
@@ -432,9 +433,9 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
 
             <div className="space-y-2 text-xs text-zinc-300">
               {walletResult && (
-                <div className="rounded-lg border border-indigo-300/30 bg-indigo-500/10 p-3 space-y-1">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-indigo-200">
-                    Wallet Result
+                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    Result
                   </p>
                   <p className="break-all">
                     <span className="text-indigo-200/55">Address:</span>{" "}
@@ -461,18 +462,41 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                   <button
                     type="button"
                     onClick={() => setRevealPrivateKey((v) => !v)}
-                    className="mt-1 cursor-pointer rounded border border-indigo-300/30 px-2 py-1 text-[11px] text-indigo-100 hover:border-indigo-200/60"
+                    className="mt-1 cursor-pointer rounded border border-emerald-500/40 px-2 py-1 text-[11px] text-emerald-200 hover:border-emerald-300/70"
                   >
                     {revealPrivateKey ? "Hide Private Key" : "Reveal Private Key"}
                   </button>
                 </div>
               )}
-              {balanceResult && <p>ETH Balance: {balanceResult.ethBalance}</p>}
-              {connectResult && <p>Connected: {connectResult.address}</p>}
+              {balanceResult && (
+                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    Result
+                  </p>
+                  <p className="break-all">
+                    <span className="text-indigo-200/55">Address:</span> {balanceResult.address}
+                  </p>
+                  <p>
+                    <span className="text-indigo-200/55">ETH Balance:</span>{" "}
+                    {balanceResult.ethBalance}
+                  </p>
+                </div>
+              )}
+              {connectResult && (
+                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    Result
+                  </p>
+                  <p className="break-all">
+                    <span className="text-indigo-200/55">Connected:</span>{" "}
+                    {connectResult.address}
+                  </p>
+                </div>
+              )}
               {sendResult && (
-                <div className="rounded-lg border border-blue-300/35 bg-blue-500/10 p-3 space-y-1">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-blue-200">
-                    Transaction Result
+                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    Result
                   </p>
                   <p className="break-all">
                     <span className="text-indigo-200/55">From:</span> {sendResult.from}
@@ -491,9 +515,9 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 </div>
               )}
               {txByHashResult && (
-                <div className="rounded-lg border border-indigo-300/30 bg-indigo-500/10 p-3 space-y-1">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-indigo-200">
-                    Transaction Lookup
+                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    Result
                   </p>
                   <p className="break-all">
                     <span className="text-indigo-200/55">Tx Hash:</span>{" "}
@@ -518,9 +542,9 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 </div>
               )}
               {subscriptionResult && (
-                <div className="rounded-lg border border-indigo-300/30 bg-indigo-500/10 p-3 space-y-1">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-indigo-200">
-                    Subscription Result
+                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    Result
                   </p>
                   <p>
                     <span className="text-indigo-200/55">Type:</span>{" "}
@@ -533,10 +557,17 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 </div>
               )}
               {rpcResult && (
-                <p>
-                  RPC Block: {rpcResult.blockNumber} | RPC Balance:{" "}
-                  {rpcResult.rpc.ethBalance} ETH
-                </p>
+                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
+                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    Result
+                  </p>
+                  <p>
+                    RPC Block: {rpcResult.blockNumber}
+                  </p>
+                  <p>
+                    RPC Balance: {rpcResult.rpc.ethBalance} ETH
+                  </p>
+                </div>
               )}
             </div>
           </div>
