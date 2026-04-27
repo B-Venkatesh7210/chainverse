@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { LevelCard } from "./LevelCard";
 import { levels } from "@/lib/levels";
 import { useGameStore } from "@/store/gameStore";
@@ -42,14 +43,22 @@ export function GameEngine() {
 
           <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <Image
-              src="/images/logo.png"
-              alt="Tatum logo"
-              width={72}
-              height={32}
-              className="h-6 w-auto object-contain"
-              priority
-            />
+            <Link
+              href="https://docs.tatum.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cursor-pointer"
+              aria-label="Open Tatum documentation in a new tab"
+            >
+              <Image
+                src="/images/logo.png"
+                alt="Tatum logo"
+                width={72}
+                height={32}
+                className="h-6 w-auto object-contain"
+                priority
+              />
+            </Link>
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-indigo-100/85">
                 BlockVille
