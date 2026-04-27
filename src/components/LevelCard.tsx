@@ -178,7 +178,7 @@ export function LevelCard({ level }: LevelCardProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`group relative flex flex-col rounded-xl border px-4 py-3 text-left shadow transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+        className={`group relative flex cursor-pointer flex-col rounded-xl border px-4 py-3 text-left shadow transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
           isCompleted
             ? "border-emerald-300/50 bg-[linear-gradient(rgba(9,38,26,0.72),rgba(9,38,26,0.72)),url('/images/background.png')] bg-cover bg-center animate-fade-in"
             : "border-indigo-300/25 bg-[linear-gradient(rgba(11,18,48,0.76),rgba(11,18,48,0.76)),url('/images/background.png')] bg-cover bg-center hover:border-indigo-300/65 hover:bg-[linear-gradient(rgba(11,18,48,0.68),rgba(11,18,48,0.68)),url('/images/background.png')]"
@@ -285,7 +285,7 @@ export function LevelCard({ level }: LevelCardProps) {
             void handleTest();
           }}
           disabled={isRunning}
-          className="mt-4 inline-flex items-center justify-center rounded-md border border-sky-500/60 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-200 transition hover:bg-sky-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          className="mt-4 inline-flex cursor-pointer items-center justify-center rounded-md border border-sky-500/60 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-200 transition hover:bg-sky-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed"
         >
           {isRunning ? (
             <span className="inline-flex items-center gap-2">
@@ -399,7 +399,7 @@ export function LevelCard({ level }: LevelCardProps) {
                   `Mock webhook fired: tx=${event.txId}, amount=${event.amountEth} ETH, status=${event.status}`
                 );
               }}
-              className="mt-3 inline-flex items-center justify-center rounded-md border border-amber-500/60 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              className="mt-3 inline-flex cursor-pointer items-center justify-center rounded-md border border-amber-500/60 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
               Simulate Webhook Event (Mock)
             </button>

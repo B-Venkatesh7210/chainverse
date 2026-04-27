@@ -344,7 +344,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
           <button
             type="button"
             onClick={skipTutorial}
-            className="rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-indigo-100/80 hover:border-indigo-200/55"
+            className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-indigo-100/80 hover:border-indigo-200/55"
           >
             Skip Tutorial
           </button>
@@ -400,7 +400,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 type="button"
                 onClick={prevTutorialStep}
                 disabled={!canGoBack}
-                className="rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:opacity-40"
+                className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Back
               </button>
@@ -408,14 +408,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 type="button"
                 onClick={() => void handleTest()}
                 disabled={isRunning}
-                className="rounded-md border border-indigo-300/45 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-50"
+                className="cursor-pointer rounded-md border border-indigo-300/45 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-50 disabled:cursor-not-allowed"
               >
                 {isRunning ? "Testing..." : "Let's Test It"}
               </button>
               <button
                 type="button"
                 onClick={continueTutorialWithoutTest}
-                className="rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85"
+                className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85"
               >
                 Continue Anyway
               </button>
@@ -423,7 +423,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 <button
                   type="button"
                   onClick={completeTutorialChallenge}
-                  className="rounded-md border border-blue-300/55 bg-blue-500/25 px-4 py-2 text-sm font-semibold text-blue-50"
+                  className="cursor-pointer rounded-md border border-blue-300/55 bg-blue-500/25 px-4 py-2 text-sm font-semibold text-blue-50"
                 >
                   Continue Story
                 </button>
@@ -461,7 +461,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                   <button
                     type="button"
                     onClick={() => setRevealPrivateKey((v) => !v)}
-                    className="mt-1 rounded border border-indigo-300/30 px-2 py-1 text-[11px] text-indigo-100 hover:border-indigo-200/60"
+                    className="mt-1 cursor-pointer rounded border border-indigo-300/30 px-2 py-1 text-[11px] text-indigo-100 hover:border-indigo-200/60"
                   >
                     {revealPrivateKey ? "Hide Private Key" : "Reveal Private Key"}
                   </button>
@@ -603,7 +603,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
             <button
               type="button"
               onClick={skipTutorial}
-              className="rounded-md border border-indigo-300/30 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-100/85 hover:border-indigo-200/55"
+              className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-100/85 hover:border-indigo-200/55"
             >
               Skip Tutorial
             </button>
@@ -612,14 +612,14 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 type="button"
                 onClick={prevTutorialStep}
                 disabled={!canGoBack}
-                className="rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:opacity-40"
+                className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Back
               </button>
               <button
                 type="button"
                 onClick={nextTutorialDialogue}
-                className="inline-flex items-center gap-1 rounded-md border border-indigo-300/50 bg-gradient-to-r from-[#5B4CFF]/70 to-[#2D7CFF]/70 px-4 py-2 text-sm font-semibold text-indigo-50"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-indigo-300/50 bg-gradient-to-r from-[#5B4CFF]/70 to-[#2D7CFF]/70 px-4 py-2 text-sm font-semibold text-indigo-50"
               >
                 Next
                 <ArrowRight className="h-3.5 w-3.5" />

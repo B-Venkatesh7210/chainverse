@@ -28,7 +28,7 @@ export function Modal({ open, title, children, onClose }: ModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-indigo-300/30 bg-indigo-500/10 text-indigo-100/70 transition hover:border-indigo-200/70 hover:text-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-indigo-300/30 bg-indigo-500/10 text-indigo-100/70 transition hover:border-indigo-200/70 hover:text-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             aria-label="Close modal"
           >
             <X className="h-3.5 w-3.5" />
