@@ -178,35 +178,42 @@ export function LevelCard({ level }: LevelCardProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`group relative flex flex-col justify-between rounded-xl border px-4 py-3 text-left shadow transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 bg-[linear-gradient(rgba(11,18,48,0.76),rgba(11,18,48,0.76)),url('/images/background.png')] bg-cover bg-center ${
+        className={`group relative flex flex-col rounded-xl border px-4 py-3 text-left shadow transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
           isCompleted
-            ? "border-blue-300/50 animate-fade-in"
-            : "border-indigo-300/25 hover:border-indigo-300/65 hover:bg-[linear-gradient(rgba(11,18,48,0.68),rgba(11,18,48,0.68)),url('/images/background.png')]"
+            ? "border-emerald-300/50 bg-[linear-gradient(rgba(9,38,26,0.72),rgba(9,38,26,0.72)),url('/images/background.png')] bg-cover bg-center animate-fade-in"
+            : "border-indigo-300/25 bg-[linear-gradient(rgba(11,18,48,0.76),rgba(11,18,48,0.76)),url('/images/background.png')] bg-cover bg-center hover:border-indigo-300/65 hover:bg-[linear-gradient(rgba(11,18,48,0.68),rgba(11,18,48,0.68)),url('/images/background.png')]"
         }`}
       >
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300">
+        <div className="flex h-full flex-col">
+          <div className="text-center">
+            <p
+              className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                isCompleted ? "text-emerald-200/90" : "text-indigo-300"
+              }`}
+            >
               {level.chapterName}
             </p>
             <p className="mt-1 text-sm text-indigo-50">{level.title}</p>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-indigo-300/50 bg-indigo-500/20 text-indigo-100 transition group-hover:shadow-neon-blue">
+
+          <div
+            className={`pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border transition group-hover:shadow-neon-blue ${
+              isCompleted
+                ? "border-emerald-300/55 bg-emerald-500/20 text-emerald-100"
+                : "border-indigo-300/50 bg-indigo-500/20 text-indigo-100"
+            }`}
+          >
             {isCompleted ? (
-              <CheckCircle2 className="h-4 w-4 text-blue-200" />
+              <CheckCircle2 className="h-7 w-7 text-emerald-200" />
             ) : (
-              <Play className="h-4 w-4 fill-indigo-300/50" />
+              <Play className="h-7 w-7 fill-indigo-300/50" />
             )}
           </div>
+
+          <div className="mt-auto pt-6 text-center">
+            <p className="text-[11px] text-indigo-100/55">{level.description}</p>
+          </div>
         </div>
-        <p className="mt-3 text-[11px] text-indigo-100/55">
-          {level.description}
-        </p>
-        {isCompleted && (
-          <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-blue-200">
-            Cleared
-          </p>
-        )}
       </button>
 
       <Modal
