@@ -3,6 +3,20 @@
 import React from "react";
 import Image from "next/image";
 import { ArrowRight, Lightbulb, Target } from "lucide-react";
+import {
+  Badge,
+  BadgeColor,
+  BadgeSize,
+  BadgeVariant,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Card,
+  Field,
+  Input,
+  Label,
+  toast,
+} from "@tatum-io/tatum-design-system";
 import { CodeSnippet } from "./CodeSnippet";
 import { TypewriterText } from "./TypewriterText";
 import { ConsolePanel } from "./ConsolePanel";
@@ -12,6 +26,7 @@ import {
   type Level,
   type VillagerEmotion,
 } from "@/lib/levels";
+import { TDS_GAME_INPUT_CLASSNAME } from "@/lib/tdsInputStyles";
 import { useGameStore, type WalletLevelResult } from "@/store/gameStore";
 
 type TutorialPanelProps = {
@@ -120,6 +135,8 @@ function getDialogueTask(level: Level, phase: string): string {
       return "Send a small Sepolia ETH transaction and verify the resulting tx hash.";
     case "txByHash":
       return "Inspect a Sepolia transaction using only its hash and decode its key fields.";
+    case "price":
+      return "Fetch a live exchange price by symbol and quote the market in USD.";
     case "subscribe":
       return "Create a real webhook subscription for block-level failed transaction alerts.";
     case "rpc":
@@ -149,6 +166,8 @@ function getDialogueLearnItems(level: Level, phase: string): string[] {
       return ["Sending native ETH", "Using connected wallet signer", "Tracking tx hash result"];
     case "txByHash":
       return ["Using tx hash input", "Fetching transaction details", "Reading sender, receiver, and value"];
+    case "price":
+      return ["Using symbol input", "Fetching market exchange rates", "Reading symbol-to-USD value"];
     case "subscribe":
       return ["Configuring webhook URL", "Creating subscription in Tatum", "Receiving alert events"];
     case "rpc":
@@ -186,7 +205,6 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
   const addLog = useGameStore((state) => state.addLog);
   const setLevelResult = useGameStore((state) => state.setLevelResult);
   const markLevelCompleted = useGameStore((state) => state.markLevelCompleted);
-  const setSuccessMessage = useGameStore((state) => state.setSuccessMessage);
   const levelResult = useGameStore((state) => state.levelResults[level.id]);
 
   const lines =
@@ -259,6 +277,17 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
             }
           | undefined)
       : undefined;
+  const priceResult =
+    level.kind === "price"
+      ? (levelResult as
+          | {
+              symbol: string;
+              basePair: string;
+              rate: string;
+              fetchedAt: string | null;
+            }
+          | undefined)
+      : undefined;
   const rpcResult =
     level.kind === "rpc"
       ? (levelResult as
@@ -275,6 +304,8 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
     setRevealPrivateKey(false);
     if (level.id === "treasury-whisper") {
       setAddressInput(TREASURY_DEFAULT_ADDRESS);
+    } else if (level.id === "market-oracle") {
+      setAddressInput("ETH");
     }
   }, [level.id, phase]);
 
@@ -288,9 +319,15 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
           level.kind === "balance" ||
           level.kind === "send" ||
           level.kind === "txByHash" ||
+          level.kind === "price" ||
           level.kind === "subscribe" ||
           level.kind === "rpc"
-            ? { address: addressInput, webhookUrl: webhookInput, txHash: addressInput }
+            ? {
+                address: addressInput,
+                webhookUrl: webhookInput,
+                txHash: addressInput,
+                symbol: addressInput,
+              }
             : undefined,
       });
 
@@ -300,8 +337,7 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
       }
 
       markLevelCompleted(level.id);
-      setSuccessMessage(`${level.title} complete`);
-      window.setTimeout(() => setSuccessMessage(null), 2000);
+      toast.success(`${level.title} complete`);
       setChallengeResolved(true);
     } catch (error) {
       addLog(`${level.title} failed: ${formatActionError(error)}`);
@@ -312,9 +348,9 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
 
   return (
     <section
-      className={`relative flex min-h-[64vh] flex-1 flex-col justify-between overflow-hidden rounded-2xl border border-indigo-400/25 shadow-neon-blue ${
+      className={`relative flex min-h-[64vh] flex-1 flex-col justify-between overflow-hidden rounded-tatum-2xl border border-tatum-gray-700 shadow-tatum-lg ${
         isChallengeView
-          ? "bg-gradient-to-b from-[#0b1230]/95 via-[#0c1433]/90 to-[#080f26]/95 p-4"
+          ? "bg-tatum-secondary-950/95 p-tatum-lg"
           : ""
       }`}
     >
@@ -325,249 +361,310 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(107,87,255,0.23),transparent_42%),radial-gradient(circle_at_78%_74%,rgba(45,124,255,0.16),transparent_44%)]" />
         </>
       )}
-      <div className={`relative ${isChallengeView ? "mb-5" : "px-4 pt-4"}`}>
-        <div className="flex items-start justify-between gap-3">
+      <div className={`relative ${isChallengeView ? "mb-tatum-xl" : "px-tatum-lg pt-tatum-lg"}`}>
+        <div className="flex items-start justify-between gap-tatum-md">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300">
+            <p className="text-tatum-text-xs font-tatum-medium uppercase tracking-[0.18em] text-tatum-gray-400">
               {phase === "prologue" ? "BlockVille Prologue" : level.chapterName}
             </p>
-            <h2 className="text-lg font-semibold text-indigo-50">
+            <h2 className="text-tatum-heading-xs font-tatum-semibold text-tatum-gray-50">
               {phase === "prologue" ? "Arrival of the Tatumian" : level.title}
             </h2>
-            <p className="text-sm text-indigo-100/60">
+            <p className="text-tatum-text-sm text-tatum-gray-400">
               {phase === "prologue"
                 ? "Hear what happened to BlockVille before the first chapter begins."
                 : level.description}
             </p>
           </div>
           {phase === "challenge" && (
-            <button
+            <Button
               type="button"
+              variant={ButtonVariant.Outlined}
+              size={ButtonSize.Small}
               onClick={skipTutorial}
-              className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-indigo-100/80 hover:border-indigo-200/55"
+              className="uppercase tracking-[0.14em]"
             >
               Skip Tutorial
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       {phase === "challenge" ? (
-        <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-          <div className="space-y-4">
+        <div className="grid flex-1 gap-tatum-xl lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+          <div className="space-y-tatum-xl">
             <CodeSnippet code={level.codeSnippet} language="typescript" />
 
             {(level.kind === "balance" ||
               level.kind === "send" ||
               level.kind === "txByHash" ||
+              level.kind === "price" ||
               level.kind === "rpc") && (
-              <div>
-                <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500">
+              <Field>
+                <Label className="text-tatum-text-xs font-tatum-medium uppercase tracking-[0.14em] text-tatum-gray-500">
                   {level.kind === "send"
                     ? "Recipient Address"
                     : level.kind === "txByHash"
                       ? "Transaction Hash"
-                      : "Wallet Address"}
-                </label>
-                <input
+                      : level.kind === "price"
+                        ? "Symbol"
+                        : "Wallet Address"}
+                </Label>
+                <Input
                   value={addressInput}
                   onChange={(e) => setAddressInput(e.target.value)}
                   placeholder={
                     level.kind === "txByHash"
                       ? "0x...transactionHash"
-                      : "0x..."
+                      : level.kind === "price"
+                        ? "ETH"
+                        : "0x..."
                   }
-                  className="w-full rounded-md border border-indigo-300/25 bg-[#08102b] px-3 py-2 text-sm text-indigo-50 placeholder:text-indigo-200/35"
+                  inputClassName={TDS_GAME_INPUT_CLASSNAME}
                 />
-              </div>
+              </Field>
             )}
 
             {level.kind === "subscribe" && (
-              <div>
-                <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-zinc-500">
+              <Field>
+                <Label className="text-tatum-text-xs font-tatum-medium uppercase tracking-[0.14em] text-tatum-gray-500">
                   Webhook URL
-                </label>
-                <input
+                </Label>
+                <Input
                   value={webhookInput}
                   onChange={(e) => setWebhookInput(e.target.value)}
                   placeholder="https://your-domain.com/api/webhooks/tatum"
-                  className="w-full rounded-md border border-indigo-300/25 bg-[#08102b] px-3 py-2 text-sm text-indigo-50 placeholder:text-indigo-200/35"
+                  inputClassName={TDS_GAME_INPUT_CLASSNAME}
                 />
-              </div>
+              </Field>
             )}
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
+            <div className="flex flex-wrap items-center gap-tatum-md">
+              <Button
                 type="button"
+                variant={ButtonVariant.Outlined}
+                size={ButtonSize.Medium}
                 onClick={prevTutorialStep}
                 disabled={!canGoBack}
-                className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Back
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Medium}
                 onClick={() => void handleTest()}
                 disabled={isRunning}
-                className="cursor-pointer rounded-md border border-indigo-300/45 bg-indigo-500/20 px-4 py-2 text-sm font-semibold text-indigo-50 disabled:cursor-not-allowed"
+                busy={isRunning}
               >
                 {isRunning ? "Testing..." : "Let's Test It"}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Medium}
                 onClick={continueTutorialWithoutTest}
-                className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85"
               >
                 Continue Anyway
-              </button>
+              </Button>
               {challengeResolved && (
-                <button
+                <Button
                   type="button"
+                  variant={ButtonVariant.Accent}
+                  size={ButtonSize.Medium}
                   onClick={completeTutorialChallenge}
-                  className="cursor-pointer rounded-md border border-blue-300/55 bg-blue-500/25 px-4 py-2 text-sm font-semibold text-blue-50"
                 >
                   Continue Story
-                </button>
+                </Button>
               )}
             </div>
 
-            <div className="space-y-2 text-xs text-zinc-300">
+            <div className="space-y-tatum-md text-tatum-text-xs text-tatum-gray-300">
               {walletResult && (
-                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                <Card
+                  as="div"
+                  className="gap-tatum-sm border-tatum-success-600 bg-tatum-success-950/25 p-tatum-lg text-tatum-text-xs shadow-none"
+                >
+                  <p className="font-tatum-semibold uppercase tracking-[0.16em] text-tatum-success-400">
                     Result
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">Address:</span>{" "}
+                    <span className="text-tatum-gray-500">Address:</span>{" "}
                     {walletResult.address}
                   </p>
                   {walletResult.xpub && (
                     <p className="break-all">
-                      <span className="text-indigo-200/55">Xpub:</span>{" "}
+                      <span className="text-tatum-gray-500">Xpub:</span>{" "}
                       {walletResult.xpub}
                     </p>
                   )}
                   {walletResult.mnemonic && (
                     <p className="break-words">
-                      <span className="text-indigo-200/55">Mnemonic:</span>{" "}
+                      <span className="text-tatum-gray-500">Mnemonic:</span>{" "}
                       {walletResult.mnemonic}
                     </p>
                   )}
                   <p className="break-all">
-                    <span className="text-indigo-200/55">Private Key:</span>{" "}
+                    <span className="text-tatum-gray-500">Private Key:</span>{" "}
                     {revealPrivateKey
                       ? walletResult.privateKey
                       : `${walletResult.privateKey.slice(0, 8)}...${walletResult.privateKey.slice(-6)}`}
                   </p>
-                  <button
+                  <Button
                     type="button"
+                    variant={ButtonVariant.Outlined}
+                    size={ButtonSize.Small}
                     onClick={() => setRevealPrivateKey((v) => !v)}
-                    className="mt-1 cursor-pointer rounded border border-emerald-500/40 px-2 py-1 text-[11px] text-emerald-200 hover:border-emerald-300/70"
+                    className="mt-tatum-xs w-fit"
                   >
                     {revealPrivateKey ? "Hide Private Key" : "Reveal Private Key"}
-                  </button>
-                </div>
+                  </Button>
+                </Card>
               )}
               {balanceResult && (
-                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                <Card
+                  as="div"
+                  className="gap-tatum-sm border-tatum-success-600 bg-tatum-success-950/25 p-tatum-lg text-tatum-text-xs shadow-none"
+                >
+                  <p className="font-tatum-semibold uppercase tracking-[0.16em] text-tatum-success-400">
                     Result
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">Address:</span> {balanceResult.address}
+                    <span className="text-tatum-gray-500">Address:</span>{" "}
+                    {balanceResult.address}
                   </p>
                   <p>
-                    <span className="text-indigo-200/55">ETH Balance:</span>{" "}
+                    <span className="text-tatum-gray-500">ETH Balance:</span>{" "}
                     {balanceResult.ethBalance}
                   </p>
-                </div>
+                </Card>
               )}
               {connectResult && (
-                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                <Card
+                  as="div"
+                  className="gap-tatum-sm border-tatum-success-600 bg-tatum-success-950/25 p-tatum-lg text-tatum-text-xs shadow-none"
+                >
+                  <p className="font-tatum-semibold uppercase tracking-[0.16em] text-tatum-success-400">
                     Result
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">Connected:</span>{" "}
+                    <span className="text-tatum-gray-500">Connected:</span>{" "}
                     {connectResult.address}
                   </p>
-                </div>
+                </Card>
               )}
               {sendResult && (
-                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                <Card
+                  as="div"
+                  className="gap-tatum-sm border-tatum-success-600 bg-tatum-success-950/25 p-tatum-lg text-tatum-text-xs shadow-none"
+                >
+                  <p className="font-tatum-semibold uppercase tracking-[0.16em] text-tatum-success-400">
                     Result
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">From:</span> {sendResult.from}
+                    <span className="text-tatum-gray-500">From:</span> {sendResult.from}
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">To:</span> {sendResult.to}
+                    <span className="text-tatum-gray-500">To:</span> {sendResult.to}
                   </p>
                   <p>
-                    <span className="text-indigo-200/55">Amount:</span>{" "}
+                    <span className="text-tatum-gray-500">Amount:</span>{" "}
                     {sendResult.amountEth} ETH
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">Tx Hash:</span>{" "}
+                    <span className="text-tatum-gray-500">Tx Hash:</span>{" "}
                     {sendResult.txHash}
                   </p>
-                </div>
+                </Card>
               )}
               {txByHashResult && (
-                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                <Card
+                  as="div"
+                  className="gap-tatum-sm border-tatum-success-600 bg-tatum-success-950/25 p-tatum-lg text-tatum-text-xs shadow-none"
+                >
+                  <p className="font-tatum-semibold uppercase tracking-[0.16em] text-tatum-success-400">
                     Result
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">Tx Hash:</span>{" "}
+                    <span className="text-tatum-gray-500">Tx Hash:</span>{" "}
                     {txByHashResult.txHash}
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">From:</span>{" "}
+                    <span className="text-tatum-gray-500">From:</span>{" "}
                     {txByHashResult.from ?? "Unknown"}
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">To:</span>{" "}
+                    <span className="text-tatum-gray-500">To:</span>{" "}
                     {txByHashResult.to ?? "Contract creation"}
                   </p>
                   <p>
-                    <span className="text-indigo-200/55">Value:</span>{" "}
+                    <span className="text-tatum-gray-500">Value:</span>{" "}
                     {txByHashResult.valueEth ?? "0"} ETH
                   </p>
                   <p>
-                    <span className="text-indigo-200/55">Block Number:</span>{" "}
+                    <span className="text-tatum-gray-500">Block Number:</span>{" "}
                     {txByHashResult.blockNumber ?? "Pending"}
                   </p>
-                </div>
+                </Card>
               )}
-              {subscriptionResult && (
-                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+              {priceResult && (
+                <Card
+                  as="div"
+                  className="gap-tatum-sm border-tatum-success-600 bg-tatum-success-950/25 p-tatum-lg text-tatum-text-xs shadow-none"
+                >
+                  <p className="font-tatum-semibold uppercase tracking-[0.16em] text-tatum-success-400">
                     Result
                   </p>
                   <p>
-                    <span className="text-indigo-200/55">Type:</span>{" "}
+                    <span className="text-tatum-gray-500">Pair:</span> {priceResult.symbol}/
+                    {priceResult.basePair}
+                  </p>
+                  <p>
+                    <span className="text-tatum-gray-500">Rate:</span> {priceResult.rate}
+                  </p>
+                  {priceResult.fetchedAt && (
+                    <p className="break-all">
+                      <span className="text-tatum-gray-500">Fetched:</span>{" "}
+                      {priceResult.fetchedAt}
+                    </p>
+                  )}
+                </Card>
+              )}
+              {subscriptionResult && (
+                <Card
+                  as="div"
+                  className="gap-tatum-sm border-tatum-success-600 bg-tatum-success-950/25 p-tatum-lg text-tatum-text-xs shadow-none"
+                >
+                  <p className="font-tatum-semibold uppercase tracking-[0.16em] text-tatum-success-400">
+                    Result
+                  </p>
+                  <p>
+                    <span className="text-tatum-gray-500">Type:</span>{" "}
                     {subscriptionResult.type}
                   </p>
                   <p className="break-all">
-                    <span className="text-indigo-200/55">Webhook URL:</span>{" "}
+                    <span className="text-tatum-gray-500">Webhook URL:</span>{" "}
                     {subscriptionResult.webhookUrl}
                   </p>
-                </div>
+                </Card>
               )}
               {rpcResult && (
-                <div className="rounded-lg border border-emerald-700/50 bg-emerald-900/10 p-3 space-y-1 text-xs">
-                  <p className="font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                <Card
+                  as="div"
+                  className="gap-tatum-sm border-tatum-success-600 bg-tatum-success-950/25 p-tatum-lg text-tatum-text-xs shadow-none"
+                >
+                  <p className="font-tatum-semibold uppercase tracking-[0.16em] text-tatum-success-400">
                     Result
                   </p>
                   <p>
-                    RPC Block: {rpcResult.blockNumber}
+                    <span className="text-tatum-gray-500">RPC Block:</span>{" "}
+                    {rpcResult.blockNumber}
                   </p>
                   <p>
-                    RPC Balance: {rpcResult.rpc.ethBalance} ETH
+                    <span className="text-tatum-gray-500">RPC Balance:</span>{" "}
+                    {rpcResult.rpc.ethBalance} ETH
                   </p>
-                </div>
+                </Card>
               )}
             </div>
           </div>
@@ -592,69 +689,85 @@ export function TutorialPanel({ level }: TutorialPanelProps) {
                 />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-indigo-200">
+                <p className="text-tatum-text-xs font-tatum-medium uppercase tracking-[0.18em] text-tatum-gray-400">
                   Villager of BlockVille
                 </p>
-                <div className="mt-2 inline-block w-fit max-w-[72ch] rounded-2xl border border-indigo-300/25 bg-gradient-to-br from-indigo-500/25 to-blue-500/10 px-4 py-3 text-sm text-indigo-50 min-h-[72px] shadow-[0_12px_34px_rgba(37,99,235,0.2)]">
+                <Card
+                  as="div"
+                  className="mt-tatum-md inline-flex w-fit max-w-[72ch] min-h-[72px] flex-col gap-0 border-tatum-gray-700 bg-tatum-secondary-900/70 p-tatum-lg text-tatum-text-sm text-tatum-gray-300 shadow-none"
+                >
                   <TypewriterText text={currentLine} playKey={typewriterKey} />
-                </div>
+                </Card>
 
-                <div className="mt-5 grid gap-4">
-                  <div className="rounded-xl border border-indigo-300/20 bg-[#0a1231]/70 p-3">
-                    <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-200/90">
-                      <Target className="h-3.5 w-3.5" />
+                <div className="mt-tatum-2xl grid gap-tatum-xl">
+                  <Card
+                    as="div"
+                    className="gap-tatum-sm border-tatum-gray-700 bg-tatum-secondary-900/70 p-tatum-lg shadow-none"
+                  >
+                    <p className="mb-tatum-md flex items-center gap-tatum-md text-tatum-text-xs font-tatum-semibold uppercase tracking-[0.18em] text-tatum-gray-300">
+                      <Target className="h-3.5 w-3.5 shrink-0" />
                       Task
                     </p>
-                    <p className="text-sm text-indigo-100/80">{dialogueTask}</p>
-                  </div>
+                    <p className="text-tatum-text-sm text-tatum-gray-300">
+                      {dialogueTask}
+                    </p>
+                  </Card>
 
-                  <div className="rounded-xl border border-indigo-300/20 bg-[#0a1231]/70 p-3">
-                    <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-200/90">
-                      <Lightbulb className="h-3.5 w-3.5" />
+                  <Card
+                    as="div"
+                    className="gap-tatum-md border-tatum-gray-700 bg-tatum-secondary-900/70 p-tatum-lg shadow-none"
+                  >
+                    <p className="mb-tatum-md flex items-center gap-tatum-md text-tatum-text-xs font-tatum-semibold uppercase tracking-[0.18em] text-tatum-gray-300">
+                      <Lightbulb className="h-3.5 w-3.5 shrink-0" />
                       What You&apos;ll Learn
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-tatum-md">
                       {dialogueLearnItems.map((item) => (
-                        <span
+                        <Badge
                           key={item}
-                          className="rounded-md border border-indigo-300/20 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-100/85"
+                          variant={BadgeVariant.Pill}
+                          color={BadgeColor.Brand}
+                          size={BadgeSize.Small}
                         >
                           {item}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
-                  </div>
+                  </Card>
                 </div>
               </div>
             </div>
           </div>
           {/* </div> */}
 
-          <div className="relative flex items-center justify-between gap-3 px-4 pb-4 pt-5">
-            <button
+          <div className="relative flex items-center justify-between gap-tatum-md px-tatum-lg pb-tatum-xl pt-tatum-2xl">
+            <Button
               type="button"
+              variant={ButtonVariant.Outlined}
+              size={ButtonSize.Medium}
               onClick={skipTutorial}
-              className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-100/85 hover:border-indigo-200/55"
             >
               Skip Tutorial
-            </button>
-            <div className="flex items-center gap-2">
-              <button
+            </Button>
+            <div className="flex items-center gap-tatum-md">
+              <Button
                 type="button"
+                variant={ButtonVariant.Outlined}
+                size={ButtonSize.Medium}
                 onClick={prevTutorialStep}
                 disabled={!canGoBack}
-                className="cursor-pointer rounded-md border border-indigo-300/30 bg-indigo-500/5 px-4 py-2 text-sm text-indigo-100/85 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Back
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Medium}
                 onClick={nextTutorialDialogue}
-                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-indigo-300/50 bg-gradient-to-r from-[#5B4CFF]/70 to-[#2D7CFF]/70 px-4 py-2 text-sm font-semibold text-indigo-50"
+                rightIcon={<ArrowRight className="h-3.5 w-3.5" />}
               >
                 Next
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>

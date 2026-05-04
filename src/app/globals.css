@@ -1,15 +1,10 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #040815;
   --foreground: #e7ecff;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,11 +16,10 @@
 
 body {
   background:
-    radial-gradient(circle at 15% 10%, rgba(91, 76, 255, 0.25), transparent 36%),
-    radial-gradient(circle at 85% 18%, rgba(45, 124, 255, 0.22), transparent 34%),
+    radial-gradient(circle at 15% 10%, rgba(91, 76, 255, 0.18), transparent 36%),
+    radial-gradient(circle at 85% 18%, rgba(45, 124, 255, 0.16), transparent 34%),
     linear-gradient(180deg, #070c1f 0%, #040815 58%, #030611 100%);
   color: var(--foreground);
-  font-family: Inter, Arial, Helvetica, sans-serif;
 }
 
 @keyframes fade-in {

@@ -1,5 +1,19 @@
+"use client";
+
 import React from "react";
 import { X } from "lucide-react";
+import {
+  ButtonSize,
+  ButtonVariant,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  IconButton,
+} from "@tatum-io/tatum-design-system";
 
 type ModalProps = {
   open: boolean;
@@ -12,33 +26,50 @@ export function Modal({ open, title, children, onClose }: ModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm animate-fade-in">
-      <div className="flex max-h-[90vh] w-full max-w-[80vw] flex-col overflow-hidden rounded-2xl border border-indigo-300/30 bg-gradient-to-b from-[#0c1434]/95 to-[#090f25]/95 shadow-2xl animate-scale-in">
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-indigo-300/20 px-5 py-4">
-          <div>
-            {title && (
-              <h3 className="text-sm font-semibold tracking-wide text-indigo-50">
-                {title}
-              </h3>
-            )}
-            <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-indigo-300">
-              Powered by Tatum
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-indigo-300/30 bg-indigo-500/10 text-indigo-100/70 transition hover:border-indigo-200/70 hover:text-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-            aria-label="Close modal"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        <div className="min-w-0 flex-1 overflow-y-auto px-5 py-4 text-sm text-indigo-50/90">
-          {children}
-        </div>
-      </div>
-    </div>
+    <Dialog open onOpenChange={(next) => !next && onClose()}>
+      <DialogPortal>
+        <DialogOverlay className="bg-tatum-black/70 backdrop-blur-sm animate-fade-in" />
+        <DialogContent
+          aria-describedby={undefined}
+          width="min(90vw, 56rem)"
+          variant="modal"
+          className="max-h-[90vh] overflow-hidden border border-tatum-gray-700 bg-tatum-secondary-950 p-0 text-tatum-gray-50 shadow-tatum-2xl [&>button:last-child]:hidden"
+        >
+          <DialogHeader className="shrink-0 border-b border-tatum-gray-700 px-tatum-2xl py-tatum-xl">
+            <div className="flex items-start justify-between gap-tatum-lg">
+              <div>
+                {title && (
+                  <DialogTitle className="text-tatum-text-md font-tatum-semibold text-tatum-gray-50">
+                    {title}
+                  </DialogTitle>
+                )}
+                <p className="mt-tatum-xs text-tatum-text-xs font-tatum-medium uppercase tracking-[0.18em] text-tatum-gray-400">
+                  Powered by Tatum
+                </p>
+              </div>
+              {/*
+                Do not use DialogClose asChild here: TDS DialogClose always injects two
+                children (icon + sr-only), which breaks Radix Slot (Children.only).
+                DialogContent already renders a default close control; this duplicates
+                the action for a header-aligned dismiss control.
+              */}
+              <IconButton
+                type="button"
+                variant={ButtonVariant.Flat}
+                size={ButtonSize.Small}
+                aria-label="Close modal"
+                className="text-tatum-gray-400 hover:text-tatum-gray-100"
+                onClick={onClose}
+              >
+                <X size={16} strokeWidth={2} />
+              </IconButton>
+            </div>
+          </DialogHeader>
+          <DialogBody className="max-h-[calc(90vh-5rem)] overflow-y-auto px-tatum-2xl py-tatum-xl text-tatum-text-sm text-tatum-gray-200">
+            {children}
+          </DialogBody>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }
-

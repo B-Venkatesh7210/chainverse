@@ -1,6 +1,36 @@
 import { NextResponse } from "next/server";
 import { getRpcTransactionByHash } from "@/lib/tatum";
 
+type RpcTxFields = {
+  hash?: string;
+  from?: string;
+  to?: string | null;
+  value?: string;
+  blockNumber?: string | null;
+  nonce?: string;
+  gas?: string;
+  gasPrice?: string;
+  input?: string;
+};
+
+type RpcEnvelope = {
+  id?: number;
+  jsonrpc?: string;
+  result?: RpcTxFields | null;
+};
+
+function unwrapRpcTransaction(
+  tx: RpcEnvelope | RpcTxFields | null
+): RpcTxFields | null {
+  if (!tx) return null;
+  if ("result" in tx) {
+    const inner = tx.result;
+    if (inner && typeof inner === "object") return inner;
+    return null;
+  }
+  return tx as RpcTxFields;
+}
+
 function weiHexToEthString(value: string): string {
   const wei = BigInt(value);
   const negative = wei < 0n;
@@ -36,44 +66,17 @@ export async function POST(request: Request) {
     }
 
     const tx = (await getRpcTransactionByHash(txHash)) as
-      | {
-          id?: number;
-          jsonrpc?: string;
-          result?: {
-            hash?: string;
-            from?: string;
-            to?: string | null;
-            value?: string;
-            blockNumber?: string | null;
-            nonce?: string;
-            gas?: string;
-            gasPrice?: string;
-            input?: string;
-          } | null;
-        }
-      | {
-          hash?: string;
-          from?: string;
-          to?: string | null;
-          value?: string;
-          blockNumber?: string | null;
-          nonce?: string;
-          gas?: string;
-          gasPrice?: string;
-          input?: string;
-        }
+      | RpcEnvelope
+      | RpcTxFields
       | null;
 
-    if (!tx) {
+    const txResult = unwrapRpcTransaction(tx);
+
+    if (!txResult) {
       return new NextResponse("Transaction not found on Ethereum Sepolia.", {
         status: 404,
       });
     }
-
-    const txResult =
-      "result" in tx && tx.result && typeof tx.result === "object"
-        ? tx.result
-        : tx;
 
     return NextResponse.json({
       txHash: txResult.hash ?? txHash,

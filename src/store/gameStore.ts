@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { levels, tutorialPrologueDialogues } from "@/lib/levels";
+import { levels, tutorialPrologueDialogues, type CustomLevelBlueprint } from "@/lib/levels";
 
 export type WalletLevelResult = {
   address: string;
@@ -17,7 +17,6 @@ type GameStore = {
   logs: string[];
   levelResults: Record<string, unknown>;
   completedLevels: string[];
-  successMessage: string | null;
   guideMessage: string;
   mode: "tutorial" | "freeplay";
   tutorialSkipped: boolean;
@@ -26,10 +25,10 @@ type GameStore = {
   prologueDialogueIdx: number;
   tutorialPhase: TutorialPhase;
   typewriterKey: number;
+  customLevels: CustomLevelBlueprint[];
   addLog: (message: string) => void;
   setLevelResult: (levelId: string, result: unknown) => void;
   markLevelCompleted: (levelId: string) => void;
-  setSuccessMessage: (message: string | null) => void;
   setGuideMessage: (message: string) => void;
   skipTutorial: () => void;
   resetTutorial: () => void;
@@ -38,6 +37,7 @@ type GameStore = {
   continueTutorialWithoutTest: () => void;
   completeTutorialChallenge: () => void;
   hydrateTutorialState: () => void;
+  addCustomLevel: (level: CustomLevelBlueprint) => void;
 };
 
 export const useGameStore = create<GameStore>()(
@@ -46,7 +46,6 @@ export const useGameStore = create<GameStore>()(
       logs: ["[system] Waiting for level selection..."],
       levelResults: {},
       completedLevels: [],
-      successMessage: null,
       guideMessage: "Villager: Welcome, Tatumian. BlockVille needs you.",
       mode: "tutorial",
       tutorialSkipped: false,
@@ -55,6 +54,7 @@ export const useGameStore = create<GameStore>()(
       prologueDialogueIdx: 0,
       tutorialPhase: "prologue",
       typewriterKey: 0,
+      customLevels: [],
       addLog: (message) =>
         set((state) => ({
           logs: [...state.logs, `[${new Date().toLocaleTimeString()}] ${message}`],
@@ -72,7 +72,6 @@ export const useGameStore = create<GameStore>()(
             ? state.completedLevels
             : [...state.completedLevels, levelId],
         })),
-      setSuccessMessage: (message) => set({ successMessage: message }),
       setGuideMessage: (message) => set({ guideMessage: message }),
       skipTutorial: () =>
         set({
@@ -245,6 +244,12 @@ export const useGameStore = create<GameStore>()(
           });
         }
       },
+      addCustomLevel: (level) =>
+        set((state) => ({
+          customLevels: state.customLevels.some((l) => l.id === level.id)
+            ? state.customLevels
+            : [...state.customLevels, level],
+        })),
     }),
     {
       name: "blockville.tutorial.state",
@@ -258,6 +263,7 @@ export const useGameStore = create<GameStore>()(
         tutorialPhase: state.tutorialPhase,
         completedLevels: state.completedLevels,
         guideMessage: state.guideMessage,
+        customLevels: state.customLevels,
       }),
     }
   )

@@ -33,6 +33,7 @@ export type LevelKind =
   | "connect"
   | "send"
   | "txByHash"
+  | "price"
   | "subscribe"
   | "rpc";
 
@@ -48,10 +49,115 @@ export type Level = {
   action: LevelAction;
 };
 
+export type CustomLevelBlueprint = {
+  id: string;
+  kind: LevelKind;
+  title: string;
+  chapterName: string;
+  description: string;
+  introDialogues: DialogueLine[];
+  outroDialogues: DialogueLine[];
+  codeSnippet: string;
+  defaultInput?: string;
+};
+
 const notImplementedAction = async ({ log }: LevelActionContext) => {
   log("This chapter action is not implemented yet.");
   throw new Error("This chapter is not implemented yet.");
 };
+
+function createCustomLevelAction(level: CustomLevelBlueprint): LevelAction {
+  switch (level.kind) {
+    case "balance":
+      return async ({ log, setResult, input }) => {
+        const address = input?.address?.trim();
+        if (!address) throw new Error("Wallet address is required.");
+        log(`${level.title}: fetching balance for ${address}`);
+        const response = await fetch("/api/levels/fetch-balance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address }),
+        });
+        if (!response.ok) throw new Error((await response.text()) || "Failed to fetch balance.");
+        const result = await response.json();
+        setResult(result);
+        return result;
+      };
+    case "txByHash":
+      return async ({ log, setResult, input }) => {
+        const txHash = input?.txHash?.trim();
+        if (!txHash) throw new Error("Transaction hash is required.");
+        log(`${level.title}: tracing ${txHash}`);
+        const response = await fetch("/api/levels/fetch-tx-by-hash", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ txHash }),
+        });
+        if (!response.ok) throw new Error((await response.text()) || "Failed to fetch transaction.");
+        const result = await response.json();
+        setResult(result);
+        return result;
+      };
+    case "price":
+      return async ({ log, setResult, input }) => {
+        const symbol = input?.symbol?.trim().toUpperCase();
+        if (!symbol) throw new Error("Symbol is required.");
+        log(`${level.title}: fetching ${symbol}/USD`);
+        const response = await fetch("/api/levels/fetch-exchange-price", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ symbol, basePair: "USD" }),
+        });
+        if (!response.ok) {
+          throw new Error((await response.text()) || "Failed to fetch exchange price.");
+        }
+        const result = await response.json();
+        setResult(result);
+        return result;
+      };
+    case "subscribe":
+      return async ({ log, setResult, input }) => {
+        const webhookUrl = input?.webhookUrl?.trim();
+        if (!webhookUrl) throw new Error("Webhook URL is required.");
+        log(`${level.title}: creating webhook subscription`);
+        const response = await fetch("/api/levels/create-subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ webhookUrl }),
+        });
+        if (!response.ok) {
+          throw new Error((await response.text()) || "Failed to create subscription.");
+        }
+        const result = await response.json();
+        setResult(result);
+        return result;
+      };
+    case "rpc":
+      return async ({ log, setResult, input }) => {
+        const address = input?.address?.trim();
+        if (!address) throw new Error("Wallet address is required.");
+        log(`${level.title}: fetching RPC diagnostics for ${address}`);
+        const response = await fetch("/api/levels/fetch-rpc-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address }),
+        });
+        if (!response.ok) throw new Error((await response.text()) || "Failed to fetch RPC data.");
+        const result = await response.json();
+        setResult(result);
+        return result;
+      };
+    default:
+      return notImplementedAction;
+  }
+}
+
+export function materializeCustomLevel(level: CustomLevelBlueprint): Level {
+  return {
+    ...level,
+    action: createCustomLevelAction(level),
+  };
+}
 
 export const levels: Level[] = [
   {
@@ -305,6 +411,66 @@ console.log({
           result.to ?? "contract creation"
         }`
       );
+      return result;
+    },
+  },
+  {
+    id: "market-oracle",
+    kind: "price",
+    title: "Market Oracle",
+    chapterName: "The Silent Bazaar",
+    description: "Query live exchange price by symbol and restore fair trading in BlockVille.",
+    introDialogues: [
+      { text: "Our bazaar fell silent. Merchants cannot price their goods anymore.", emotion: "worried" },
+      { text: "If we read the market price by symbol, trade can flow again.", emotion: "thinking" },
+      { text: "Summon the Market Oracle, Tatumian. Ask for a symbol and reveal its value.", emotion: "idea" },
+    ],
+    outroDialogues: [
+      { text: "The Oracle speaks! Prices are back and the bazaar lives again.", emotion: "victory" },
+      { text: "BlockVille trade routes are stable now. Beautiful recovery.", emotion: "happy" },
+    ],
+    codeSnippet: `import { TatumSDK, Network, Ethereum, ApiVersion } from "@tatumio/tatum";
+
+const tatum = await TatumSDK.init<Ethereum>({
+  network: Network.ETHEREUM_SEPOLIA,
+  version: ApiVersion.V4,
+  apiKey: { v4: process.env.TATUM_API_KEY_V4! },
+});
+
+const symbol = "ETH";
+const response = await fetch(
+  \`https://api.tatum.io/v4/data/rate/symbol?symbol=\${symbol}&basePair=USD\`,
+  {
+    headers: {
+      "x-api-key": process.env.TATUM_API_KEY_V4!,
+    },
+  }
+);
+
+const rate = await response.json();
+console.log(rate);`,
+    action: async ({ log, setResult, input }) => {
+      const symbol = input?.symbol?.trim().toUpperCase();
+      if (!symbol) throw new Error("Symbol is required.");
+
+      log(`Market Oracle: fetching ${symbol}/USD exchange rate`);
+      const response = await fetch("/api/levels/fetch-exchange-price", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symbol, basePair: "USD" }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to fetch exchange rate.");
+      }
+      const result = (await response.json()) as {
+        symbol: string;
+        basePair: string;
+        rate: string;
+        fetchedAt: string | null;
+      };
+      setResult(result);
+      log(`Market Oracle complete: ${result.symbol}/${result.basePair} = ${result.rate}`);
       return result;
     },
   },
