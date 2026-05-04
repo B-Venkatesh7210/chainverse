@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { levels, tutorialPrologueDialogues, type CustomLevelBlueprint } from "@/lib/levels";
+import { levels, tutorialPrologueDialogues } from "@/lib/levels";
 
 export type WalletLevelResult = {
   address: string;
@@ -25,7 +25,6 @@ type GameStore = {
   prologueDialogueIdx: number;
   tutorialPhase: TutorialPhase;
   typewriterKey: number;
-  customLevels: CustomLevelBlueprint[];
   addLog: (message: string) => void;
   setLevelResult: (levelId: string, result: unknown) => void;
   markLevelCompleted: (levelId: string) => void;
@@ -37,7 +36,6 @@ type GameStore = {
   continueTutorialWithoutTest: () => void;
   completeTutorialChallenge: () => void;
   hydrateTutorialState: () => void;
-  addCustomLevel: (level: CustomLevelBlueprint) => void;
 };
 
 export const useGameStore = create<GameStore>()(
@@ -54,7 +52,6 @@ export const useGameStore = create<GameStore>()(
       prologueDialogueIdx: 0,
       tutorialPhase: "prologue",
       typewriterKey: 0,
-      customLevels: [],
       addLog: (message) =>
         set((state) => ({
           logs: [...state.logs, `[${new Date().toLocaleTimeString()}] ${message}`],
@@ -244,12 +241,6 @@ export const useGameStore = create<GameStore>()(
           });
         }
       },
-      addCustomLevel: (level) =>
-        set((state) => ({
-          customLevels: state.customLevels.some((l) => l.id === level.id)
-            ? state.customLevels
-            : [...state.customLevels, level],
-        })),
     }),
     {
       name: "blockville.tutorial.state",
@@ -263,7 +254,6 @@ export const useGameStore = create<GameStore>()(
         tutorialPhase: state.tutorialPhase,
         completedLevels: state.completedLevels,
         guideMessage: state.guideMessage,
-        customLevels: state.customLevels,
       }),
     }
   )

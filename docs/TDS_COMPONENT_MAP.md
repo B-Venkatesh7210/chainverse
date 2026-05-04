@@ -24,18 +24,15 @@ This document lists **which TDS components and APIs** were wired into BlockVille
 | Before | After (TDS) |
 |--------|-------------|
 | Custom `<header>` / indigo gradients | Same structure; **TDS tokens** (`border-tatum-gray-700`, `bg-tatum-secondary-900/90`, etc.). |
-| Custom `<div>` progress bar | **`ProgressBar`** (`ProgressBarLabelType.None`) with `indicatorClassName` gradient. |
-| Freeplay shell: `section` with indigo borders | **`Card`** (`as="section"`) + nested **`Card`** for the generator panel. |
-| Raw `<input>` + `<button>` for custom level | **`Field`**, **`Label`** (sr-only), **`Input`**, **`Button`** (`Primary`, `busy` while generating). |
-| Inline error `<p>` | **`Alert`** (`AlertType.Error`, `withoutCloseButton`). |
-| Success line for custom level count | Plain text with **`text-tatum-success-400`**. |
+| Custom `<div>` progress bar | **`ProgressBar`** (`ProgressBarLabelType.None`) with wrapper + `indicatorClassName` for track height/fill. |
+| Freeplay shell: `section` with indigo borders | **`Card`** (`as="section"`) with header strip + **`LevelCard`** grid (built-in `levels` only). |
 
 ### `src/components/Modal.tsx`
 
 | Before | After (TDS) |
 |--------|-------------|
 | Fixed overlay + hand-rolled panel | **`Dialog`**, **`DialogPortal`**, **`DialogOverlay`**, **`DialogContent`**, **`DialogHeader`**, **`DialogTitle`**, **`DialogBody`**. |
-| Custom close `<button>` + `X` | **`DialogClose`** + **`IconButton`** (`ButtonVariant.Flat`, `ButtonSize.Small`). |
+| Custom close `<button>` + `X` | **`IconButton`** with `onClick={onClose}` (TDS `DialogClose` + `asChild` is incompatible with their close implementation). |
 
 ### `src/components/LevelCard.tsx`
 
