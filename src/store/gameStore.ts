@@ -17,7 +17,6 @@ type GameStore = {
   logs: string[];
   levelResults: Record<string, unknown>;
   completedLevels: string[];
-  successMessage: string | null;
   guideMessage: string;
   mode: "tutorial" | "freeplay";
   tutorialSkipped: boolean;
@@ -29,7 +28,6 @@ type GameStore = {
   addLog: (message: string) => void;
   setLevelResult: (levelId: string, result: unknown) => void;
   markLevelCompleted: (levelId: string) => void;
-  setSuccessMessage: (message: string | null) => void;
   setGuideMessage: (message: string) => void;
   skipTutorial: () => void;
   resetTutorial: () => void;
@@ -46,7 +44,6 @@ export const useGameStore = create<GameStore>()(
       logs: ["[system] Waiting for level selection..."],
       levelResults: {},
       completedLevels: [],
-      successMessage: null,
       guideMessage: "Villager: Welcome, Tatumian. BlockVille needs you.",
       mode: "tutorial",
       tutorialSkipped: false,
@@ -72,7 +69,6 @@ export const useGameStore = create<GameStore>()(
             ? state.completedLevels
             : [...state.completedLevels, levelId],
         })),
-      setSuccessMessage: (message) => set({ successMessage: message }),
       setGuideMessage: (message) => set({ guideMessage: message }),
       skipTutorial: () =>
         set({

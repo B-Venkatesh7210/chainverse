@@ -1,10 +1,13 @@
 import type { Config } from "tailwindcss";
+import tdsPlugin from "@tatum-io/tatum-design-system/tailwind-plugin";
 
 const config: Config = {
   darkMode: "class",
   content: [
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
+    "./node_modules/@tatum-io/tatum-design-system/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -26,7 +29,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [tdsPlugin],
 };
 
 export default config;

@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import "@tatum-io/tatum-design-system/styles.css";
+import { TdsToaster } from "@/components/TdsToaster";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -23,12 +20,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-game-bg text-zinc-100">
+    <html lang="en" className={`${geistMono.variable} h-full antialiased`}>
+      <body className="font-tds min-h-full flex flex-col bg-tatum-secondary-950 text-tatum-gray-50">
         {children}
+        <TdsToaster />
       </body>
     </html>
   );

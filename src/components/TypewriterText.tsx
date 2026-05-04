@@ -43,7 +43,7 @@ export function TypewriterText({
             href="https://docs.tatum.io/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sky-300 underline decoration-sky-400/60 underline-offset-2 hover:text-sky-200"
+            className="text-tatum-primary-300 underline decoration-tatum-primary-400/60 underline-offset-2 hover:text-tatum-primary-200"
           >
             {part}
           </a>
